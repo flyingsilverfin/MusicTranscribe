@@ -7,7 +7,7 @@ import android.widget.Button;
 
 public class RecordActivity extends Activity {
 
-	private static final String TAG = "RecordActivity" 
+	private static final String TAG = "RecordActivity";
 	
 	private final int SAMPLING_SPEED = 44100; //samples per second, 44100 default (guaranteed support on devices)
 	
@@ -36,7 +36,7 @@ public class RecordActivity extends Activity {
 			@Override
 			public void onClick(View v) {
 				toggleRecording
-//---------------------------------------------------------------- place of working --------------
+//---------------------------------------------------------------- working on this part sometime --------------
 
 		Log.i(TAG,"Desired Buffer Time: %d, Actual buffer time: %d\n\n",EXTERNAL_BUFFER_TIME,ACTUAL_EXTERNAL_BUFFER_TIME);
 	}

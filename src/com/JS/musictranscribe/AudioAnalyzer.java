@@ -1,5 +1,6 @@
 package com.JS.musictranscribe;
 
+import android.content.Intent;
 import android.media.AudioFormat;
 import android.media.AudioRecord;
 import android.util.Log;
@@ -72,10 +73,12 @@ public class AudioAnalyzer {
 
 	}
 
+
+
 	//returns true if succeeded, false if could not start
 	public boolean startRecording() {
 		try {
-			recorder.startRecording();
+			mRecorder.startRecording();
 			mIsRecordingPaused = false;
 			mIsDone = false;
 		} catch (Throwable e) {
@@ -98,39 +101,40 @@ public class AudioAnalyzer {
 
 	public void resumeRecording() {
 		(new Thread() {
-			cleanBuffer();
-			mIsRecordingPaused = false;
-			Log.i(TAG,"Interrupting threads to resume");
-			mReaderThread.interrupt();
-			mAnalyzerThread.interrupt();
+			public void run() {
+				cleanBuffer();
+				mIsRecordingPaused = false;
+				Log.i(TAG,"Interrupting threads to resume");
+				mReaderThread.interrupt();
+				mAnalyzerThread.interrupt();
+			}
 		}).start();
 	}
 	
 
 	public void pauseRecording() {
 		mIsRecordingPaused = true;
-		recorder.stop();
+		mRecorder.stop();
 	}
 
 
 	public void finishRecording() {
 		mIsDone = true;
 		mIsRecordingPaused = true;
-		recorder.stop();
+		mRecorder.stop();
 	}
 
 	public void cleanBuffer() {
 		for ( int i = 0; i < mNUM_BUFFER_STARTUP_FLUSHES; i++) {
-			recorder.read(new short[mInternalBufferSize],0,mInternalBufferSize);
+			mRecorder.read(new short[mInternalBufferSize],0,mInternalBufferSize);
 		}
-		Log.i(TAG, "wiped recorder" + NUM_BUFFER_STARTUP_FLUSHES+ " times\n");
+		Log.i(TAG, "wiped recorder" + mNUM_BUFFER_STARTUP_FLUSHES+ " times\n");
 	}	
 
 
 	//dummy, graphing only right now
 	//not sure if what I wrote here works, hoping it does.	
 	public void analyze(short[] rawAudioData) {
-
 		Intent graphIntent = new Intent(this, GraphActivity.class);
 		mIntervalFreqData = getFreqData(rawAudioData);
 		graphIntent.putExtra("xAxis_FFT",getHertzAxis(rawAudioData.length));
@@ -141,7 +145,7 @@ public class AudioAnalyzer {
 			rawAudioDoubles[i] = (double) rawAudioData[i];
 		}
 	
-		graphIntent.putExtra("xAxis_rawAudio", getTimeAxis(rawAudioData.length);
+		graphIntent.putExtra("xAxis_rawAudio", getTimeAxisInMs(rawAudioData.length));
 		graphIntent.putExtra("rawAudio",rawAudioDoubles);
 	
 		startActivity(graphIntent);
@@ -152,7 +156,7 @@ public class AudioAnalyzer {
 		double[] timeAxis = new double[numRawData];
 	
 		for (int i = 0; i < numRawData; i++) {
-			timeAxis[i] = 1000*(i/SAMPLING_SPEED);
+			timeAxis[i] = 1000*(i/mSamplingSpeed);
 		}
 		return timeAxis;
 	}
@@ -160,8 +164,8 @@ public class AudioAnalyzer {
 	//want to rewrite this function too, not neat
 	public double[] getHertzAxis(int numRawData) {
 		double[] frequencyAxis = new double[numRawData];
-		for (int i = 0; i < numFftCoeffs; i++) {
-			frequencyAxis[i] = i * SAMPLING_SPEED / (numRawData); // *2  bec there were 2*numFftCoeffs of real/complex, the number passed in is just those combined
+		for (int i = 0; i < numRawData/2; i++) {
+			frequencyAxis[i] = i * mSamplingSpeed / (numRawData); // *2  bec there were 2*numFftCoeffs of real/complex, the number passed in is just those combined
 		}
 		return frequencyAxis;
 	}
@@ -202,7 +206,7 @@ other random TODO's:
 			while (!mIsDone) {
 				while (!mIsRecordingPaused) { //for external interrupting
 					while (mIsAnalysisDone) { //for parallel thread interrupting
-						numRecorded = recorder.read(mIntervalRawData, 0, mIntervalRawData.length); // copy out new data
+						numRecorded = mRecorder.read(mIntervalRawData, 0, mIntervalRawData.length); // copy out new data
 						Log.d(TAG,"\tNumber of data recorded: " + numRecorded);
 						mIsAnalysisDone = false;
 						mAnalyzerThread.interrupt();
@@ -218,7 +222,7 @@ other random TODO's:
 			while (true){
 				try {
 					Thread.sleep(1000);
-				} catch (InterrupedException e){
+				} catch (InterruptedException e){
 					mIsPaused = false;
 					return;
 				}
@@ -245,7 +249,7 @@ other random TODO's:
 			while (!mIsDone) {
 				while (!mIsRecordingPaused) { //for external interrupting
 					while (!mIsAnalysisDone) { //for parallel thread interrupting
-						analyze(mRawIntervalData);
+						analyze(mIntervalRawData);
 						mIsAnalysisDone = true;
 						mReaderThread.interrupt();
 					}
@@ -260,7 +264,7 @@ other random TODO's:
 			while (true) {
 				try {
 					Thread.sleep(1000);
-				} catch (InterrupedException e) {
+				} catch (InterruptedException e) {
 					mIsPaused = false;
 					return;		
 				}	
@@ -284,7 +288,7 @@ other random TODO's:
 			audioDataCopy[i] = audioData[i];
 		}
 
-		FFT.realForward(audioDataCopy);
+		mFFT.realForward(audioDataCopy);
 
 		double[] fftCoeffs = new double[audioDataCopy.length / 2];
 
@@ -306,6 +310,11 @@ other random TODO's:
 		}
 		return size;
 	}
+	
+	private void setInternalBufferSize(int internalBufferSize) {
+		mInternalBufferSize = internalBufferSize;
+	}
+	
 
 	private void setSamplingSpeed(int SamplingSpeed) {
 		mSamplingSpeed = SamplingSpeed;
@@ -321,17 +330,17 @@ other random TODO's:
 
 	private void setChannelConfig(boolean isMono) {
 		mIsMonoFormat = isMono;
-		mChannelConfig =  = isMono ? AudioFormat.CHANNEL_IN_MONO : AudioFormat.CHANNEL_IN_STEREO;
+		mChannelConfig = isMono ? AudioFormat.CHANNEL_IN_MONO : AudioFormat.CHANNEL_IN_STEREO;
 	}
 
-	private void setAudioDataFormat(boolean is16bit) {
+	private void setAudioDataFormat(boolean is16Bit) {
 		mIs16BitFormat = is16Bit;
 		mAudioDataFormat = is16Bit ? AudioFormat.ENCODING_PCM_16BIT : AudioFormat.ENCODING_PCM_8BIT;
 	}
 
 
 	public boolean getRecordingState() {
-		if (recorder.getRecordingState() == AudioRecord.RECORDSTATE_RECORDING) {
+		if (mRecorder.getRecordingState() == AudioRecord.RECORDSTATE_RECORDING) {
 			return true;
 		}
 		else {
@@ -341,7 +350,7 @@ other random TODO's:
 
 
 	public void logInternalBufferCapacity() {
-		Log.i(TAG,"Internal Buffer size: %d\n", mInternalBufferSize);
+		Log.i(TAG,"Internal Buffer size: " +  mInternalBufferSize + "\n");
 		int storageTime = (int)(1000*mInternalBufferSize/((float) (mIs16BitFormat ? 2 : 1) * mSamplingSpeed));
 		Log.i(TAG, "This will hold " + storageTime + " ms\n");
 	}
