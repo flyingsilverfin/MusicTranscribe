@@ -7,13 +7,20 @@ import android.util.Log;
 
 public class AudioAnalyzer {
 
+	//for log
 	private static final String TAG = "Audio_Analyzer";
 	
+	//threading logic
 	private boolean mIsDone = false;
 	private boolean mIsRecordingPaused = false;
 	private boolean mIsAnalysisDone = true;
+	//actual threading objects
+	private readerRunnable mReaderRunnable;
+	private analyzerRunnable mAnalyzerRunnable;
+	private Thread mReaderThread;
+	private Thread mAnalyzerThread;
 
-	//parameters
+	//parameters for recorder
 	private final int mMAX_NOTE_SECONDS = 50; //default
 	private int mSamplingSpeed;
 	private int mInternalBufferSize;
@@ -24,22 +31,21 @@ public class AudioAnalyzer {
 	private int mChannelConfig;			//for actual system
 	private int mAudioDataFormat;		//for actual system
 
-	
+	//for flushing the recorder out before starting to record actual data
 	private final int mNUM_BUFFER_STARTUP_FLUSHES = 10;
 	
 	private short[] mIntervalRawData; 	// to copy out the internal buffer 
-	private double[] mIntervalFreqData; //for fft
+	private double[] mIntervalFreqData; //for fft data
 
 	private short[] mCompleteRawData; // to store the max 50 seconds
 
-	private readerRunnable mReaderRunnable;
-	private analyzerRunnable mAnalyzerRunnable;
-	private Thread mReaderThread;
-	private Thread mAnalyzerThread;
 
+	//library-based objects
 	private DoubleFFT_1D mFFT;
 	private AudioRecord mRecorder;
 	
+	
+	//constructor
 	public AudioAnalyzer(int audioSource, int samplingSpeed, boolean isMonoFormat, boolean is16BitFormat, int externalBufferSize ) {
 
 		setInternalBufferSize(getInternalBufferSize(samplingSpeed,
@@ -99,6 +105,7 @@ public class AudioAnalyzer {
 		return true;
 	}
 
+	//for starting from pause
 	public void resumeRecording() {
 		(new Thread() {
 			public void run() {
@@ -124,6 +131,7 @@ public class AudioAnalyzer {
 		mRecorder.stop();
 	}
 
+	//flush the internal buffer of the recorder (get rid of noise)
 	public void cleanBuffer() {
 		for ( int i = 0; i < mNUM_BUFFER_STARTUP_FLUSHES; i++) {
 			mRecorder.read(new short[mInternalBufferSize],0,mInternalBufferSize);
@@ -151,7 +159,7 @@ public class AudioAnalyzer {
 		startActivity(graphIntent);
 	}
 
-
+	//get time axis of the data
 	public double[] getTimeAxisInMs(int numRawData) {
 		double[] timeAxis = new double[numRawData];
 	
@@ -162,8 +170,9 @@ public class AudioAnalyzer {
 	}
 
 	//want to rewrite this function too, not neat
+	//returns double[] of hertz axis of the FFT
 	public double[] getHertzAxis(int numRawData) {
-		double[] frequencyAxis = new double[numRawData];
+		double[] frequencyAxis = new double[numRawData/2];
 		for (int i = 0; i < numRawData/2; i++) {
 			frequencyAxis[i] = i * mSamplingSpeed / (numRawData); // *2  bec there were 2*numFftCoeffs of real/complex, the number passed in is just those combined
 		}
@@ -190,6 +199,7 @@ other random TODO's:
 
 //NOT EFFICIENT!!!! SEE ABOVE!!!
 
+	//thread the reads data
 	private class readerRunnable implements Runnable {
 		private boolean mIsPaused;
 		private Thread mAnalyzerThread;
@@ -234,6 +244,8 @@ other random TODO's:
 		}
 	}
 	
+	
+	//thread that does analysis
 	private class analyzerRunnable implements Runnable {
 		private boolean mIsPaused;
 		private Thread mReaderThread;
@@ -280,7 +292,7 @@ other random TODO's:
 		}			
 	}
 
-
+	//returns FFT (combined into single data)
 	private double[] getFreqData(short[] audioData) {
 		double[] audioDataCopy = new double[audioData.length];
 
@@ -300,6 +312,7 @@ other random TODO's:
 	}
 
 
+	//get an appropriate internal recorder buffer size
 	private int getInternalBufferSize(int samplingSpeed, boolean isMono, boolean is16Bit) {
 		int size = 100+AudioRecord.getMinBufferSize(samplingSpeed, 
 				isMono ? AudioFormat.CHANNEL_IN_MONO : AudioFormat.CHANNEL_IN_STEREO, 
