@@ -44,6 +44,9 @@ public class AudioAnalyzer {
 	private DoubleFFT_1D mFFT;
 	private AudioRecord mRecorder;
 	
+
+		//debugging
+		public boolean D_graphEveryCycle = false;
 	
 	//constructor
 	public AudioAnalyzer(int audioSource, int samplingSpeed, boolean isMonoFormat, boolean is16BitFormat, int externalBufferSize ) {
@@ -65,7 +68,7 @@ public class AudioAnalyzer {
 		mCompleteRawData = new short[mMAX_NOTE_SECONDS * mSamplingSpeed];
 
 		mIntervalRawData = new short[mExternalBufferSize];
-		mIntervalFreqData = new double[mExternalBufferSize]; //same size since we got two components
+		mIntervalFreqData = new double[mExternalBufferSize/2]; //same size since we got two components
 															//for each freq, to be combined into a single set
 
 		mFFT = new DoubleFFT_1D(mExternalBufferSize);
@@ -140,24 +143,30 @@ public class AudioAnalyzer {
 	}	
 
 
-	//dummy, graphing only right now
-	//not sure if what I wrote here works, hoping it does.	
-	public void analyze(short[] rawAudioData) {
+	private void analyze() {
+		if (D_graphEveryCycle) {
+			pauseRecording();
+			makeGraphs(mIntervalRawData, mIntervalFreqData);
+		}	
+	}		
+
+	public void makeGraphs(short[] rawAudioData, double[] frequencyData) {
 		Intent graphIntent = new Intent(this, GraphActivity.class);
-		mIntervalFreqData = getFreqData(rawAudioData);
-		graphIntent.putExtra("xAxis_FFT",getHertzAxis(rawAudioData.length));
-		graphIntent.putExtra("FFT", mIntervalFreqData);
 
 		double[] rawAudioDoubles = new double[rawAudioData.length];
 		for (int i = 0; i < rawAudioData.length; i++) {
 			rawAudioDoubles[i] = (double) rawAudioData[i];
 		}
-	
+
+		graphIntent.putExtra("xAxis_FFT",getHertzAxis(frequencyData.length));
+		graphIntent.putExtra("FFT", frequencyData);
+
 		graphIntent.putExtra("xAxis_rawAudio", getTimeAxisInMs(rawAudioData.length));
 		graphIntent.putExtra("rawAudio",rawAudioDoubles);
-	
-		startActivity(graphIntent);
+
+		startActivity(graphIntent); //can't make/start activity from non-activity?
 	}
+
 
 	//get time axis of the data
 	public double[] getTimeAxisInMs(int numRawData) {
@@ -169,12 +178,11 @@ public class AudioAnalyzer {
 		return timeAxis;
 	}
 
-	//want to rewrite this function too, not neat
 	//returns double[] of hertz axis of the FFT
-	public double[] getHertzAxis(int numRawData) {
-		double[] frequencyAxis = new double[numRawData/2];
-		for (int i = 0; i < numRawData/2; i++) {
-			frequencyAxis[i] = i * mSamplingSpeed / (numRawData); // *2  bec there were 2*numFftCoeffs of real/complex, the number passed in is just those combined
+	public double[] getHertzAxis(int numFreqData) {
+		double[] frequencyAxis = new double[numFreqData];
+		for (int i = 0; i < numFreqData; i++) {
+			frequencyAxis[i] = i * mSamplingSpeed / (numFreqData*2); // *2  bec there were 2*numFftCoeffs of raw points, 					//other way of looking at it: basic hertz = 1/time = 1/(numData/SamplingSpeed)	
 		}
 		return frequencyAxis;
 	}
@@ -220,8 +228,8 @@ other random TODO's:
 						Log.d(TAG,"\tNumber of data recorded: " + numRecorded);
 						mIsAnalysisDone = false;
 						mAnalyzerThread.interrupt();
+						pause();
 					}
-					pause();
 				}
 				pause();
 			}
@@ -261,11 +269,12 @@ other random TODO's:
 			while (!mIsDone) {
 				while (!mIsRecordingPaused) { //for external interrupting
 					while (!mIsAnalysisDone) { //for parallel thread interrupting
-						analyze(mIntervalRawData);
+						updateIntervalFreqData();
+						analyze();
 						mIsAnalysisDone = true;
 						mReaderThread.interrupt();
+						pause();
 					}
-					pause();
 				}
 				pause();			
 			}
@@ -292,8 +301,8 @@ other random TODO's:
 		}			
 	}
 
-	//returns FFT (combined into single data)
-	private double[] getFreqData(short[] audioData) {
+	//returns FFT (both parts combined into single data)
+	public double[] getFreqData(short[] audioData) {
 		double[] audioDataCopy = new double[audioData.length];
 
 		for (int i = 0; i < audioData.length; i++) {
@@ -311,6 +320,28 @@ other random TODO's:
 		return fftCoeffs;
 	}
 
+	//get copy of Audio Data -- not needed right now, could be used later
+	public short[] getRawAudioDataCopy() {
+		short[] tmpAudioData = new short[mIntervalRawData.length];
+		for (int i = 0; i < mIntervalRawData.length; i++) {
+			tmpAudioData[i] = mIntervalRawData[i];
+		}
+		return tmpAudioData;
+	}
+	
+	public short[] getIntervalRawData() {
+		return mIntervalRawData;
+	}
+	
+	public double[] getIntervalFreqData() {
+		return mIntervalFreqData;
+	}
+
+
+	//calculate the FFT and save it to the correct private variable
+	public void updateIntervalFreqData() {
+		mIntervalFreqData = getFreqData(mIntervalRawData);
+	}
 
 	//get an appropriate internal recorder buffer size
 	private int getInternalBufferSize(int samplingSpeed, boolean isMono, boolean is16Bit) {
@@ -351,14 +382,22 @@ other random TODO's:
 		mAudioDataFormat = is16Bit ? AudioFormat.ENCODING_PCM_16BIT : AudioFormat.ENCODING_PCM_8BIT;
 	}
 
-
-	public boolean getRecordingState() {
+	//is the actual AudioRecord recorder paused
+	public boolean isRecorderRunning() {
 		if (mRecorder.getRecordingState() == AudioRecord.RECORDSTATE_RECORDING) {
 			return true;
 		}
 		else {
 			return false;
 		}
+	}
+
+	//are the two threads truly paused, and therefore a full cycle of analysis done
+	public boolean isThreadingPaused() {
+		if (mReaderRunnable.isPaused() && mAnalyzerRunnable.isPaused()) {
+			return true;
+		}
+		return false;
 	}
 
 

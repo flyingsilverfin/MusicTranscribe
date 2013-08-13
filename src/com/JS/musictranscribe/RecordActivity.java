@@ -2,7 +2,9 @@ package com.JS.musictranscribe;
 
 import android.app.Activity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
+import android.view.View;
 import android.widget.Button;
 
 public class RecordActivity extends Activity {
@@ -19,10 +21,17 @@ public class RecordActivity extends Activity {
 	private final int EXTERNAL_BUFFER_SIZE = Helper.nextLowerPowerOf2((int)(SAMPLING_SPEED*((float)EXTERNAL_BUFFER_TIME/1000))); //find next lower power of two
 	private final int ACTUAL_EXTERNAL_BUFFER_TIME = EXTERNAL_BUFFER_SIZE*1000/SAMPLING_SPEED; //find actual time being measured based on above
 	
-	private boolean isRecording = false;
+	private boolean mIsRecordingPaused = true;
+	private boolean mIsRecordingDone = false;
 	private boolean isFirstToggle = true;
-	private Button recordButton;	
-	private AudioAnalyzer audioAnalyzer;
+	private Button mRecordingPausePlayButton;	
+	private Button mFinishRecordingButton;
+	private Button mGraphButton;
+	private AudioAnalyzer mAudioAnalyzer;
+
+	//DEBUG
+		private Button D_graphEveryCycleToggleButton;
+		private boolean D_graphEveryCycle = false;
 	
 	
 	@Override
@@ -30,15 +39,35 @@ public class RecordActivity extends Activity {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_record);
 		
-		recordButton = (Button) findViewById(R.id.Record_Button);
-		
-		recordButton.setOnClickListener(new View.onClickListener() {
+		mRecordingPausePlayButton = (Button) findViewById(R.id.Record_PausePlay_Button);
+		mRecordingPausePlayButton.setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View v) {
-				toggleRecording
-//---------------------------------------------------------------- working on this part sometime --------------
+				toggleRecording();
+				mRecordingPausePlayButton.setText("isPaused: " +( mIsRecordingPaused ? "true" : "false"));
+			}
+		});
 
-		Log.i(TAG,"Desired Buffer Time: %d, Actual buffer time: %d\n\n",EXTERNAL_BUFFER_TIME,ACTUAL_EXTERNAL_BUFFER_TIME);
+		mGraphButton = (Button) findViewById(R.id.Make_Graph_Button);
+		mGraphButton.setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				makeGraphs();
+			}
+		});
+
+		D_graphEveryCycleToggleButton = (Button) findViewById(R.id.D_Graph_Every_Cycle_Button);
+		D_graphEveryCycleToggleButton.setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				toggleGraphEveryCycle();
+				D_graphEveryCycleToggleButton.setText("graphEveryCycle: "+ (D_graphEveryCycle ? "true" : "false"));
+			}
+		});
+//IN PROGRESS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+
+		Log.i(TAG,"Desired Buffer Time: "+EXTERNAL_BUFFER_TIME+", Actual buffer time:"+ACTUAL_EXTERNAL_BUFFER_TIME+" \n\n");
+
 	}
 
 	@Override
@@ -49,4 +78,54 @@ public class RecordActivity extends Activity {
 	}
 
 
+	private void toggleRecording() {		
+		if (mIsRecordingPaused) {
+			mIsRecordingPaused = false;
+			mAudioAnalyzer.resumeRecording();
+		}
+		else if (!mIsRecordingPaused) {
+			mIsRecordingPaused = true;
+			mAudioAnalyzer.pauseRecording();
+		}
+
+	}
+
+	
+	//this is separate because I suspect we will want to send them to editing and or postprocess all of it at this point
+	private void finishRecording() {
+		if (mIsRecordingDone) {
+		}
+		else if (!mIsRecordingDone) {
+			mIsRecordingDone = true;		
+			mAudioAnalyzer.finishRecording();
+		}
+	}
+
+	private void makeGraphs() {
+		if (!mIsRecordingPaused) {
+			toggleRecording();
+		}
+		while (!mAudioAnalyzer.isThreadingPaused()) { //wait until the threading is actually paused to ensure everything is updated
+			try {			
+				Thread.sleep(1);
+			} catch (InterruptedException e) {}
+		}
+		mAudioAnalyzer.makeGraphs(mAudioAnalyzer.getIntervalRawData(), mAudioAnalyzer.getIntervalFreqData());
+	}
+				
+
+	private void toggleGraphEveryCycle() {
+		if (D_graphEveryCycle) {
+			mGraphButton.setEnabled(true); 
+			mAudioAnalyzer.D_graphEveryCycle = false;
+			D_graphEveryCycle = false;
+		} 
+		else if (!D_graphEveryCycle) {
+			mGraphButton.setEnabled(false); //disable the makeGraph button if graphing every new measurement
+			mAudioAnalyzer.D_graphEveryCycle = true;
+			D_graphEveryCycle = true;
+		}
+	}
+		
+	
 }
