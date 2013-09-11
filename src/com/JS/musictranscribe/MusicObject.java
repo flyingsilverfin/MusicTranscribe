@@ -1,3 +1,6 @@
+package com.JS.musictranscribe;
+
+
 public abstract class MusicObject {
 	private int mLength;
 	private int mReference;

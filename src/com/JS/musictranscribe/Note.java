@@ -1,3 +1,6 @@
+package com.JS.musictranscribe;
+
+/*
 public class Note extends MusicObject {
 
 	private ??? mDominantFrequencies;
@@ -15,3 +18,5 @@ public class Note extends MusicObject {
 
 
 }
+
+*/

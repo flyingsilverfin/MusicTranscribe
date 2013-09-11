@@ -247,6 +247,10 @@ other random TODO's:
 			}
 		}
 
+		public void setParallelThread(Thread analyzerThread) {
+			mAnalyzerThread = analyzerThread;
+		}
+	
 		public boolean isPaused() {
 			return mIsPaused;
 		}
