@@ -7,6 +7,7 @@ import java.util.Set;
 import android.app.Activity;
 import android.graphics.Color;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
@@ -53,6 +54,9 @@ public class GraphActivity extends Activity {
 		adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
 		graphChoicesSpinner.setAdapter(adapter);
 		
+		Log.i(TAG,"Spinner set up");
+
+		
 		//set up submit button
 		submitGraphChoiceButton = (Button) findViewById(R.id.submit_graph_choice_button);
 		submitGraphChoiceButton.setOnClickListener(new View.OnClickListener() {
@@ -62,6 +66,9 @@ public class GraphActivity extends Activity {
 			}
 		});
 		
+		Log.i(TAG,"Wired Submit Button");
+
+		
 		//set up graphView
 		graphView = new LineGraphView(this, "GRAPH");
 		layout = (LinearLayout) findViewById(R.id.graph);
@@ -69,6 +76,8 @@ public class GraphActivity extends Activity {
 		((LineGraphView)graphView).setDrawBackground(true);
 		graphView.setBackgroundColor(Color.BLACK);
 		
+		Log.i(TAG,"Graph view set up");
+
 	}
 
 	private String[] getIntentKeysArray() {
@@ -90,6 +99,8 @@ public class GraphActivity extends Activity {
 
 	
 	private void updateGraph(String key) {
+		Log.i(TAG,"updating graph");
+
 		double[] xAxis = getIntent().getDoubleArrayExtra(key);
 		double[] data = getIntent().getDoubleArrayExtra(key.substring(6)); //cut out the xAxis_
 		graphviewData = new GraphViewData[Math.min(xAxis.length, data.length)]; //min incase the lengths don't match up, cut to shorter datalength

@@ -1,6 +1,7 @@
 package com.JS.musictranscribe;
 
 import android.app.Activity;
+import android.media.MediaRecorder.AudioSource;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
@@ -11,27 +12,27 @@ public class RecordActivity extends Activity {
 
 	private static final String TAG = "RecordActivity";
 	
-	private final int SAMPLING_SPEED = 44100; //samples per second, 44100 default (guaranteed support on devices)
+	private final int mSAMPLING_SPEED = 44100; //samples per second, 44100 default (guaranteed support on devices)
 	
-	private final int MAX_NOTE_SECONDS = 50; 			// SECONDS
-	private final int FULL_BUFFER_SIZE = SAMPLING_SPEED*MAX_NOTE_SECONDS;
-	private final float RECORDER_BUFFER_SIZE_MULTIPLIER = 1; //*0.5 bec 16 bit
+	private final int mMAX_NOTE_SECONDS = 50; 			// SECONDS
+	private final int mFULL_BUFFER_SIZE = mSAMPLING_SPEED*mMAX_NOTE_SECONDS;
+	private final float mRECORDER_BUFFER_SIZE_MULTIPLIER = 1; //*0.5 bec 16 bit
 
-	private final int EXTERNAL_BUFFER_TIME = 100; //desired milliseconds
-	private final int EXTERNAL_BUFFER_SIZE = Helper.nextLowerPowerOf2((int)(SAMPLING_SPEED*((float)EXTERNAL_BUFFER_TIME/1000))); //find next lower power of two
-	private final int ACTUAL_EXTERNAL_BUFFER_TIME = EXTERNAL_BUFFER_SIZE*1000/SAMPLING_SPEED; //find actual time being measured based on above
+	private final int mEXTERNAL_BUFFER_TIME = 100; //desired milliseconds
+	private final int mEXTERNAL_BUFFER_SIZE = Helper.nextLowerPowerOf2((int)(mSAMPLING_SPEED*((float)mEXTERNAL_BUFFER_TIME/1000))); //find next lower power of two
+	private final int mACTUAL_EXTERNAL_BUFFER_TIME = mEXTERNAL_BUFFER_SIZE*1000/mSAMPLING_SPEED; //find actual time being measured based on above
 	
 	private boolean mIsRecordingPaused = true;
 	private boolean mIsRecordingDone = false;
-	private boolean isFirstToggle = true;
+	private boolean mIsFirstToggle = true;
 	private Button mRecordingPausePlayButton;	
 	private Button mFinishRecordingButton;
 	private Button mGraphButton;
 	private AudioAnalyzer mAudioAnalyzer;
 
 	//DEBUG
-		private Button D_graphEveryCycleToggleButton;
-		private boolean D_graphEveryCycle = false;
+		private Button dGraphEveryCycleToggleButton;
+		private boolean dGraphEveryCycle = false;
 	
 	
 	@Override
@@ -56,19 +57,24 @@ public class RecordActivity extends Activity {
 			}
 		});
 
-		D_graphEveryCycleToggleButton = (Button) findViewById(R.id.D_Graph_Every_Cycle_Button);
-		D_graphEveryCycleToggleButton.setOnClickListener(new View.OnClickListener() {
+		dGraphEveryCycleToggleButton = (Button) findViewById(R.id.dGraph_Every_Cycle_Button);
+		dGraphEveryCycleToggleButton.setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View v) {
 				toggleGraphEveryCycle();
-				D_graphEveryCycleToggleButton.setText("graphEveryCycle: "+ (D_graphEveryCycle ? "true" : "false"));
+				dGraphEveryCycleToggleButton.setText("graphEveryCycle: "+ (dGraphEveryCycle ? "true" : "false"));
 			}
 		});
-//IN PROGRESS!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
-		Log.i(TAG,"Desired Buffer Time: "+EXTERNAL_BUFFER_TIME+", Actual buffer time:"+ACTUAL_EXTERNAL_BUFFER_TIME+" \n\n");
+		mAudioAnalyzer = new AudioAnalyzer(AudioSource.MIC, mSAMPLING_SPEED, 
+				true, true, mEXTERNAL_BUFFER_SIZE, this); 
+				//isMono and is16Bit = true, this = context to pass in for graphing activity source
+
+		Log.i(TAG,"Desired Buffer Time: "+mEXTERNAL_BUFFER_TIME+", Actual buffer time:"+ mACTUAL_EXTERNAL_BUFFER_TIME +" \n\n");
 
 	}
+	
+	// -----END onCreate
 
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
@@ -78,8 +84,13 @@ public class RecordActivity extends Activity {
 	}
 
 
-	private void toggleRecording() {		
-		if (mIsRecordingPaused) {
+	private void toggleRecording() {
+		if (mIsFirstToggle) { //this only runs the first time
+			mIsRecordingPaused = false;
+			mAudioAnalyzer.startRecording();
+			mIsFirstToggle = false;
+		}
+		else if (mIsRecordingPaused) {
 			mIsRecordingPaused = false;
 			mAudioAnalyzer.resumeRecording();
 		}
@@ -115,15 +126,15 @@ public class RecordActivity extends Activity {
 				
 
 	private void toggleGraphEveryCycle() {
-		if (D_graphEveryCycle) {
+		if (dGraphEveryCycle) {
 			mGraphButton.setEnabled(true); 
-			mAudioAnalyzer.D_graphEveryCycle = false;
-			D_graphEveryCycle = false;
+			mAudioAnalyzer.dGraphEveryCycle = false;
+			dGraphEveryCycle = false;
 		} 
-		else if (!D_graphEveryCycle) {
+		else if (!dGraphEveryCycle) {
 			mGraphButton.setEnabled(false); //disable the makeGraph button if graphing every new measurement
-			mAudioAnalyzer.D_graphEveryCycle = true;
-			D_graphEveryCycle = true;
+			mAudioAnalyzer.dGraphEveryCycle = true;
+			dGraphEveryCycle = true;
 		}
 	}
 		

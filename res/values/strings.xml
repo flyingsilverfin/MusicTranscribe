@@ -7,7 +7,10 @@
     <string name="library_button_text"> View your Library </string>
     <string name="goto_recording_button_text"> New Project </string>
     <string name="submit_button">Submit</string>
+    <string name="title_activity_graph">GraphActivity</string>
     <string name="title_activity_record">RecordActivity</string>
 	<string name="record_button_text"> Start Recording! </string>
+	<string name="make_graph_button_text">Make Graph</string>
+	<string name="dGraph_every_cycle_button_text">Graph Each Cycle</string>
     
 </resources>
