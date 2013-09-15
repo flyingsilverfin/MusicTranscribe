@@ -45,7 +45,6 @@ public class RecordActivity extends Activity {
 			@Override
 			public void onClick(View v) {
 				toggleRecording();
-				mRecordingPausePlayButton.setText("isPaused: " +( mIsRecordingPaused ? "true" : "false"));
 			}
 		});
 
@@ -62,7 +61,6 @@ public class RecordActivity extends Activity {
 			@Override
 			public void onClick(View v) {
 				toggleGraphEveryCycle();
-				dGraphEveryCycleToggleButton.setText("graphEveryCycle: "+ (dGraphEveryCycle ? "true" : "false"));
 			}
 		});
 
@@ -98,6 +96,8 @@ public class RecordActivity extends Activity {
 			mIsRecordingPaused = true;
 			mAudioAnalyzer.pauseRecording();
 		}
+		mRecordingPausePlayButton.setText("isPaused: " +( mIsRecordingPaused ? "true" : "false"));
+
 
 	}
 
@@ -136,6 +136,7 @@ public class RecordActivity extends Activity {
 			mAudioAnalyzer.dGraphEveryCycle = true;
 			dGraphEveryCycle = true;
 		}
+		dGraphEveryCycleToggleButton.setText("graphEveryCycle: "+ (dGraphEveryCycle ? "true" : "false"));
 	}
 		
 	

@@ -103,15 +103,19 @@ public class GraphActivity extends Activity {
 
 		double[] xAxis = getIntent().getDoubleArrayExtra(key);
 		double[] data = getIntent().getDoubleArrayExtra(key.substring(6)); //cut out the xAxis_
-		graphviewData = new GraphViewData[Math.min(xAxis.length, data.length)]; //min incase the lengths don't match up, cut to shorter datalength
+		graphviewData = new GraphViewData[Math.min(xAxis.length, data.length)]; //min in case the lengths don't match up, cut to shorter datalength
 		
 		for (int i = 0; i < graphviewData.length; i++) {
 			graphviewData[i] = new GraphViewData(xAxis[i],data[i]);
 		}
 		
+		Log.i(TAG,"Adding series");
 		graphView.addSeries(new GraphViewSeries(graphviewData));
 		graphView.setViewPort(0, graphviewData.length);
 		
+		//Log.i(TAG,"Clearing Data and adding new");
 		layout.addView(graphView);		
+		//Log.i(TAG,"Added View");
+
 	}
 }

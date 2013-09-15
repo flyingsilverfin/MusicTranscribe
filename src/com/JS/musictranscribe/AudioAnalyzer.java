@@ -132,6 +132,12 @@ public class AudioAnalyzer {
 			public void run() {
 				cleanBuffer();
 				mIsRecordingPaused = false;
+				try {
+					mRecorder.startRecording();
+				} catch (Throwable e) {
+					Log.e(TAG,"Failed to resume recorder");
+					return;
+				}
 				Log.i(TAG,"Interrupting threads to resume");
 				mReaderThread.interrupt();
 				mAnalyzerThread.interrupt();
@@ -141,7 +147,8 @@ public class AudioAnalyzer {
 	
 
 	public void pauseRecording() {
-		mIsRecordingPaused = true;
+		mIsRecordingPaused = true; 
+		while (!isReaderPaused()) {} //wait for reader to actually pause before stopping recorder -- weird conflict otherwise
 		mRecorder.stop();
 	}
 
@@ -163,12 +170,14 @@ public class AudioAnalyzer {
 
 	private void analyze() {
 		if (dGraphEveryCycle) {
-			pauseRecording();
+			pauseRecording(); //somehow this is pausing this thread (or something) too!!!
+			Log.i(TAG,""+dGraphEveryCycle);
 			makeGraphs(mIntervalRawData, mIntervalFreqData);
 		}	
 	}		
 
 	public void makeGraphs(short[] rawAudioData, double[] frequencyData) {
+		Log.i(TAG,"Preparing Graphs");
 		Intent graphIntent = new Intent(mContext, GraphActivity.class);
 
 		double[] rawAudioDoubles = new double[rawAudioData.length];
@@ -241,18 +250,17 @@ other random TODO's:
 			int numRecorded;
 			while (!mIsDone) {
 				while (!mIsRecordingPaused) { //for external interrupting
-					while (mIsAnalysisDone) { //for parallel thread interrupting
+					if (mIsAnalysisDone) { //for parallel thread interrupting
 						numRecorded = mRecorder.read(mIntervalRawData, 0, mIntervalRawData.length); // copy out new data
 						Log.d(TAG,"\tNumber of data recorded: " + numRecorded + "\n mIsRecordingPaused:" + mIsRecordingPaused);
 						mIsAnalysisDone = false;
 						mAnalyzerThread.interrupt();
-						pause();
 					}
+					pause();
 				}
 				pause();
 			}
 		}
-
 		public void pause() {
 			mIsPaused = true;
 			while (true){
@@ -295,15 +303,16 @@ other random TODO's:
 			}			
 			while (!mIsDone) {
 				while (!mIsRecordingPaused) { //for external interrupting
-					while (!mIsAnalysisDone) { //for parallel thread interrupting
+					if (!mIsAnalysisDone) { //for parallel thread interrupting
 						updateIntervalFreqData();
+
 						analyze();
 						mIsAnalysisDone = true;
 						mReaderThread.interrupt();
-						pause();
 					}
+					pause();			
 				}
-				pause();			
+				pause();
 			}
 		}
 
@@ -436,6 +445,12 @@ other random TODO's:
 		return false;
 	}
 
+	public boolean isReaderPaused() {
+		if (mReaderRunnable.isPaused()) {
+			return true;
+		}
+		return false;
+	}
 
 	public void logInternalBufferCapacity() {
 		Log.i(TAG,"Internal Buffer size: " +  mInternalBufferSize + "\n");
