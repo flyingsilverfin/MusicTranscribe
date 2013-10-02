@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Set;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.graphics.Color;
 import android.os.Bundle;
 import android.util.Log;
@@ -37,6 +38,7 @@ public class GraphActivity extends Activity {
 	private List<String> intentExtraKeys;
 	private Spinner graphChoicesSpinner;
 	private Button submitGraphChoiceButton;
+	private Button analyzeGraphButton;
 	private GraphView graphView;
 	private LinearLayout layout;
 	private GraphViewData[] graphviewData;
@@ -55,7 +57,6 @@ public class GraphActivity extends Activity {
 		graphChoicesSpinner.setAdapter(adapter);
 		
 		Log.i(TAG,"Spinner set up");
-
 		
 		//set up submit button
 		submitGraphChoiceButton = (Button) findViewById(R.id.submit_graph_choice_button);
@@ -67,6 +68,21 @@ public class GraphActivity extends Activity {
 		});
 		
 		Log.i(TAG,"Wired Submit Button");
+		
+		//set up percentage button
+		analyzeGraphButton = (Button) findViewById(R.id.percentb);
+		analyzeGraphButton.setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				Intent intent = new Intent(GraphActivity.this, PercentData.class);
+				String key2 = String.valueOf(graphChoicesSpinner.getSelectedItem());
+				intent.putExtra("key", key2);
+				intent.putExtra("xFFT", getIntent().getDoubleArrayExtra(key2));
+				intent.putExtra("data", getIntent().getDoubleArrayExtra(key2.substring(6)));
+				startActivity(intent);
+				
+			}
+		});
 
 		
 		//set up graphView
