@@ -1,6 +1,13 @@
 package com.JS.musictranscribe;
 
+import com.dropbox.client2.DropboxAPI;
+import com.dropbox.client2.android.AndroidAuthSession;
+import com.dropbox.client2.session.AccessTokenPair;
+import com.dropbox.client2.session.AppKeyPair;
+import com.dropbox.client2.session.Session.AccessType;
+
 import android.app.Activity;
+import android.content.SharedPreferences;
 import android.media.MediaRecorder.AudioSource;
 import android.os.Bundle;
 import android.util.Log;
@@ -33,12 +40,19 @@ public class RecordActivity extends Activity {
 	//DEBUG
 		private Button dGraphEveryCycleToggleButton;
 		private boolean dGraphEveryCycle = false;
-	
+		
+		private Button dDBDataUploadToggleButton;
+		private boolean dDBDataUploadEnabled = false;
+		
+		private boolean mIsDBLoggedIn;
+
+	    
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_record);
+				
 		
 		mRecordingPausePlayButton = (Button) findViewById(R.id.Record_PausePlay_Button);
 		mRecordingPausePlayButton.setOnClickListener(new View.OnClickListener() {
@@ -63,13 +77,42 @@ public class RecordActivity extends Activity {
 				toggleGraphEveryCycle();
 			}
 		});
+		
+		
+		/*NEED TO DECIDE:
+		 * Where to put the Dropbox Upload, here or in AudioAnalyzer or in Helper class
+		 * Currently it is here but that is inconvenient since most of the processing happens in AudioAnalyzer
+		 * I'm thinking best is in an external helper class for AudioAnalyzer
+		 */
+		dDBDataUploadToggleButton = (Button) findViewById(R.id.dDropbox_Upload_Button);
+		dDBDataUploadToggleButton.setEnabled(false); //only enable if DB is accessible
+		dDBDataUploadToggleButton.setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				toggleDBDataUpload();
+			}
+		});
 
+		
+		
 		mAudioAnalyzer = new AudioAnalyzer(AudioSource.MIC, mSAMPLING_SPEED, 
 				true, true, mEXTERNAL_BUFFER_SIZE, this); 
 				//isMono and is16Bit = true, this = context to pass in for graphing activity source
 
 		Log.i(TAG,"Desired Buffer Time: "+mEXTERNAL_BUFFER_TIME+", Actual buffer time:"+ mACTUAL_EXTERNAL_BUFFER_TIME +" \n\n");
 
+		
+		mIsDBLoggedIn = getIntent().getBooleanExtra("DBLoggedIn", false);
+		if (mIsDBLoggedIn) {
+			dDBDataUploadToggleButton.setEnabled(true);
+			mAudioAnalyzer.setDBLoggedIn(true);
+		}
+		else {
+			dDBDataUploadToggleButton.setEnabled(false);
+			mAudioAnalyzer.setDBLoggedIn(false);
+		}
+
+		
 	}
 	
 	// -----END onCreate
@@ -96,7 +139,7 @@ public class RecordActivity extends Activity {
 			mIsRecordingPaused = true;
 			mAudioAnalyzer.pauseRecording();
 		}
-		mRecordingPausePlayButton.setText("isPaused: " +( mIsRecordingPaused ? "true" : "false"));
+		mRecordingPausePlayButton.setText("paused: " +( mIsRecordingPaused ? "true" : "false"));
 
 
 	}
@@ -136,8 +179,27 @@ public class RecordActivity extends Activity {
 			mAudioAnalyzer.dGraphEveryCycle = true;
 			dGraphEveryCycle = true;
 		}
-		dGraphEveryCycleToggleButton.setText("graphEveryCycle: "+ (dGraphEveryCycle ? "true" : "false"));
+		dGraphEveryCycleToggleButton.setText("ContGraph: "+ (dGraphEveryCycle ? "true" : "false"));
 	}
 		
+	private void toggleDBDataUpload() {
+		if (dDBDataUploadEnabled) {
+			setDBDataUpload(false);
+			dDBDataUploadToggleButton.setText("Enable DB");
+		}
+		else {
+			dDBDataUploadToggleButton.setText("Disable DB");
+			setDBDataUpload(true);
+		}
+	}
+
 	
+	private void setDBDataUpload(boolean uploadEnabled) {
+		dDBDataUploadEnabled = uploadEnabled;
+		mAudioAnalyzer.setDBDataUpload(uploadEnabled);
+	}
+	
+	private boolean isDBDataUploadEnabled() {
+		return dDBDataUploadEnabled;
+	}
 }

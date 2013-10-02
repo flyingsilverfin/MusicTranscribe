@@ -12,8 +12,8 @@
     <string name="record_button_text"> Start Recording! </string>
     <string name="make_graph_button_text">Make Graph</string>
     <string name="dGraph_every_cycle_button_text">Graph Each Cycle</string>
+    <string name="dDropbox_upload_button_text">DB:false</string>
     <string name="title_activity_percent_data">PercentData</string>
     <string name="hello_world">Hello world!</string>
-    <string name="percents"></string>
 
 </resources>

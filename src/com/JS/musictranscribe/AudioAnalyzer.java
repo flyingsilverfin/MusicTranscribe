@@ -1,10 +1,15 @@
 package com.JS.musictranscribe;
 
+import java.io.File;
+
 import android.content.Context;
 import android.content.Intent;
 import android.media.AudioFormat;
 import android.media.AudioRecord;
 import android.util.Log;
+
+import com.dropbox.client2.DropboxAPI;
+import com.dropbox.client2.android.AndroidAuthSession;
 
 public class AudioAnalyzer {
 
@@ -48,8 +53,12 @@ public class AudioAnalyzer {
 	private AudioRecord mRecorder;
 	
 
-		//debugging
-		public boolean dGraphEveryCycle = false;
+	//debugging
+	public boolean dGraphEveryCycle = false;
+	private boolean dDBDataUpload = false;
+	private boolean dDBLoggedIn = false;
+	private DropboxAPI<AndroidAuthSession> mDBApi; //this will only be initialized if setDBLoggedIn(true) is called
+
 	
 	//constructor
 	public AudioAnalyzer(int audioSource, int samplingSpeed, boolean isMonoFormat, boolean is16BitFormat, int externalBufferSize, Context context ) {
@@ -89,6 +98,7 @@ public class AudioAnalyzer {
 
 		mFFT = new DoubleFFT_1D(mExternalBufferSize);
 
+		Log.i(TAG,"initializing runnables and threads");
 		mReaderRunnable = new readerRunnable();
 		mAnalyzerRunnable = new analyzerRunnable();
 		mReaderThread = new Thread(mReaderRunnable);
@@ -96,8 +106,9 @@ public class AudioAnalyzer {
 		mReaderRunnable.setParallelThread(mAnalyzerThread);
 		mAnalyzerRunnable.setParallelThread(mReaderThread);
 
+		
+		Log.i(TAG, "Initializing dropbox API settings");
 
-		Log.d(TAG,"Set threads and parallel threads etc");
 	}
 
 
@@ -169,15 +180,21 @@ public class AudioAnalyzer {
 
 
 	private void analyze() {
+		if (isDBLoggedIn() && isDBDataUploadEnabled()) {
+			Log.i(TAG,"attempting to write file");
+			DropboxHelper.putFile("/sdcard/testfile2.txt", getIntervalFreqData(), mDBApi);
+		}
+		
 		if (dGraphEveryCycle) {
 			pauseRecording(); //somehow this is pausing this thread (or something) too!!!
 			Log.i(TAG,""+dGraphEveryCycle);
 			makeGraphs(mIntervalRawData, mIntervalFreqData);
-		}	
+		}
 	}		
 
 	public void makeGraphs(short[] rawAudioData, double[] frequencyData) {
 		Log.i(TAG,"Preparing Graphs");
+		
 		Intent graphIntent = new Intent(mContext, GraphActivity.class);
 
 		double[] rawAudioDoubles = new double[rawAudioData.length];
@@ -426,6 +443,28 @@ other random TODO's:
 	public void setContext(Context c) {
 		mContext = c;
 	}
+	
+	public void setDBDataUpload(boolean enabled) {
+		dDBDataUpload = enabled;
+	}
+	
+	public void setDBLoggedIn(boolean loggedIn) {
+		dDBLoggedIn = loggedIn;
+		if (loggedIn) {
+			mDBApi = DropboxHelper.getDBSession(mContext);
+		}
+		else {
+			mDBApi = null;
+		}
+	}
+	
+	public boolean isDBDataUploadEnabled() {
+		return dDBDataUpload;
+	}
+	
+	public boolean isDBLoggedIn() {
+		return dDBLoggedIn;
+	}
 
 	//is the actual AudioRecord recorder paused
 	public boolean isRecorderRunning() {
@@ -457,4 +496,11 @@ other random TODO's:
 		int storageTime = (int)(1000.0*mInternalBufferSize/((float) (mIs16BitFormat ? 2 : 1) * mSamplingSpeed));
 		Log.i(TAG, "This will hold " + storageTime + " ms\n");
 	}
+	
+	
+	
+	
+
+	
+	
 }

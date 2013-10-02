@@ -18,20 +18,30 @@
         android:text="@string/welcome_text" />
 
     <Button
-        android:id="@+id/library_button"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_alignParentBottom="true"
-        android:layout_centerHorizontal="true"
-        android:layout_marginBottom="98dp"
-        android:text="@string/library_button_text" />
-
-    <Button
         android:id="@+id/goto_recording_button"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_centerHorizontal="true"
         android:layout_centerVertical="true"
         android:text="@string/goto_recording_button_text" />
+
+    <Button
+        android:id="@+id/library_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_below="@+id/goto_recording_button"
+        android:layout_centerHorizontal="true"
+        android:layout_marginTop="16dp"
+        android:text="@string/library_button_text" />
+    
+    <Button
+        android:id="@+id/dropbox_login_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_centerHorizontal="true"
+        android:layout_marginBottom="52dp"
+        android:text="Log In to Dropbox" />
+    
 
 </RelativeLayout>
