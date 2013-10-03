@@ -1,6 +1,7 @@
 package com.JS.musictranscribe;
 
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
@@ -51,6 +52,9 @@ public class GraphActivity extends Activity {
 		//set up the Spinner with graph choices
 		graphChoicesSpinner = (Spinner) findViewById(R.id.graph_spinner);
 		intentExtraKeys = getIntentKeysList();
+		for (int i = 0; i < intentExtraKeys.size(); i++) {
+			Log.i(TAG,"choice: " + intentExtraKeys.get(i));
+		}
 		ArrayAdapter<String> adapter = new ArrayAdapter<String> (this, 
 				android.R.layout.simple_spinner_item, intentExtraKeys);
 		adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
@@ -86,19 +90,23 @@ public class GraphActivity extends Activity {
 
 		
 		//set up graphView
-		graphView = new LineGraphView(this, "GRAPH");
-		layout = (LinearLayout) findViewById(R.id.graph);
-		graphView.setScrollable(true);
-		((LineGraphView)graphView).setDrawBackground(true);
+		graphView = new LineGraphView(this, "");
+		graphView.setScalable(false);
+//		graphView.setBackgroundColor(Color.WHITE);
 		graphView.setBackgroundColor(Color.BLACK);
+		graphView.setScrollable(true);
 		
+		((LineGraphView)graphView).setDrawBackground(false);
+		
+		layout = (LinearLayout) findViewById(R.id.graph);
+
 		Log.i(TAG,"Graph view set up");
 
 	}
 
 	private String[] getIntentKeysArray() {
 		Set<String> keySet = getIntent().getExtras().keySet();
-		String[] keys = new String[keySet.size()];
+		String[] keys = new String[keySet.size()/2]; // 1/2 because the extras always come in pairs, we only want the x-axis ones
 		int counter = 0;
 		for (String key : keySet) {
 			if (key.startsWith("xAxis")) {
@@ -106,6 +114,14 @@ public class GraphActivity extends Activity {
 				counter++;
 			}
 		}
+		
+		
+	/*	for (int i = 0; i < 15; i++) {
+			Log.i(TAG,"")
+		}
+		Log.i(TAG, keys[0] + ": " + getIntent().getDoubleArrayExtra(keys[0]).toString());
+		Log.i(TAG, keys[1] + ": " + getIntent().getDoubleArrayExtra(keys[1]).toString());
+*/
 		return keys;
 	}
 
@@ -115,7 +131,7 @@ public class GraphActivity extends Activity {
 
 	
 	private void updateGraph(String key) {
-		Log.i(TAG,"updating graph");
+		Log.i(TAG,"updating graph for key" + key + ", " + key.substring(6));
 
 		double[] xAxis = getIntent().getDoubleArrayExtra(key);
 		double[] data = getIntent().getDoubleArrayExtra(key.substring(6)); //cut out the xAxis_
@@ -124,12 +140,21 @@ public class GraphActivity extends Activity {
 		for (int i = 0; i < graphviewData.length; i++) {
 			graphviewData[i] = new GraphViewData(xAxis[i],data[i]);
 		}
+	
+		graphView.removeAllSeries();
+		
+		graphView.setManualYAxisBounds(Math.max(Helper.max(data), Math.abs(Helper.min(data))),
+				-1* Math.max(Helper.max(data), Math.abs(Helper.min(data))));
+
+		
+		layout.removeAllViews();
 		
 		Log.i(TAG,"Adding series");
 		graphView.addSeries(new GraphViewSeries(graphviewData));
 		graphView.setViewPort(0, graphviewData.length);
 		
 		//Log.i(TAG,"Clearing Data and adding new");
+		
 		layout.addView(graphView);		
 		//Log.i(TAG,"Added View");
 

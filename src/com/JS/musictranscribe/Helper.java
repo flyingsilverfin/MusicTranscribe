@@ -12,4 +12,26 @@ public class Helper {
 		return r;
 	}
 	
+	
+	public static double max(double[] arr) {
+		double highest = arr[0];
+		for ( int i = 1; i < arr.length; i++) {
+			if (arr[i] > highest) {
+				highest = arr[i];
+			}
+		}
+		return highest;
+	}
+	
+	public static double min(double[] arr) {
+		double lowest = arr[0];
+		for ( int i = 1; i < arr.length; i++) {
+			if (arr[i] < lowest) {
+				lowest = arr[i];
+			}
+		}
+		return lowest;
+	}	
+	
+	
 }

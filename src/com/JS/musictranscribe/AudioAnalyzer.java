@@ -188,36 +188,31 @@ public class AudioAnalyzer {
 		if (dGraphEveryCycle) {
 			pauseRecording(); //somehow this is pausing this thread (or something) too!!!
 			Log.i(TAG,""+dGraphEveryCycle);
-			makeGraphs(mIntervalRawData, mIntervalFreqData);
+			makeGraphs(getRawAudioDataDoubles(), mIntervalFreqData);
 		}
 	}		
 
-	public void makeGraphs(short[] rawAudioData, double[] frequencyData) {
+	public void makeGraphs(double[] rawAudioData, double[] frequencyData) {
 		Log.i(TAG,"Preparing Graphs");
 		
 		Intent graphIntent = new Intent(mContext, GraphActivity.class);
 
-		double[] rawAudioDoubles = new double[rawAudioData.length];
-		for (int i = 0; i < rawAudioData.length; i++) {
-			rawAudioDoubles[i] = (double) rawAudioData[i];
-		}
-
-		graphIntent.putExtra("xAxis_FFT",getHertzAxis(frequencyData.length));
+		graphIntent.putExtra("xAxis_FFT", getHertzAxis(frequencyData.length));
 		graphIntent.putExtra("FFT", frequencyData);
 
 		graphIntent.putExtra("xAxis_rawAudio", getTimeAxisInMs(rawAudioData.length));
-		graphIntent.putExtra("rawAudio",rawAudioDoubles);
+		graphIntent.putExtra("rawAudio", rawAudioData);
 
 		mContext.startActivity(graphIntent); //can't make/start activity from non-activity?
 	}
 
 
-	//get time axis of the data
+	//get time axis of the data in microseconds
 	public double[] getTimeAxisInMs(int numRawData) {
 		double[] timeAxis = new double[numRawData];
 	
 		for (int i = 0; i < numRawData; i++) {
-			timeAxis[i] = 1000*(i/mSamplingSpeed);
+			timeAxis[i] = 1000*1000*((float)i/mSamplingSpeed);
 		}
 		return timeAxis;
 	}
@@ -361,11 +356,7 @@ other random TODO's:
 
 	//returns FFT (both parts combined into single data)
 	public double[] getFreqData(short[] audioData) {
-		double[] audioDataCopy = new double[audioData.length];
-
-		for (int i = 0; i < audioData.length; i++) {
-			audioDataCopy[i] = audioData[i];
-		}
+		double[] audioDataCopy = getRawAudioDataDoubles(); //get copy of data
 
 		mFFT.realForward(audioDataCopy);
 
@@ -379,13 +370,22 @@ other random TODO's:
 	}
 
 	//get copy of Audio Data -- not needed right now, could be used later
-	public short[] getRawAudioDataCopy() {
+	public short[] getRawAudioDataShorts() {
 		short[] tmpAudioData = new short[mIntervalRawData.length];
 		for (int i = 0; i < mIntervalRawData.length; i++) {
 			tmpAudioData[i] = mIntervalRawData[i];
 		}
 		return tmpAudioData;
 	}
+	
+	public double[]  getRawAudioDataDoubles() {
+		double[] tmpAudioData = new double[mIntervalRawData.length];
+		for ( int i = 0; i < mIntervalRawData.length; i++) {
+			tmpAudioData[i] = (double) mIntervalRawData[i];
+		}
+		return tmpAudioData;
+	}
+	
 	
 	public short[] getIntervalRawData() {
 		return mIntervalRawData;
@@ -466,6 +466,10 @@ other random TODO's:
 		return dDBLoggedIn;
 	}
 
+	public boolean isGraphEveryCycle() {
+		return dGraphEveryCycle;
+	}
+	
 	//is the actual AudioRecord recorder paused
 	public boolean isRecorderRunning() {
 		if (mRecorder.getRecordingState() == AudioRecord.RECORDSTATE_RECORDING) {

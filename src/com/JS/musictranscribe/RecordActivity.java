@@ -34,6 +34,7 @@ public class RecordActivity extends Activity {
 	private boolean mIsFirstToggle = true;
 	private Button mRecordingPausePlayButton;	
 	private Button mFinishRecordingButton;
+	private Button mDisableContGraphing;
 	private Button mGraphButton;
 	private AudioAnalyzer mAudioAnalyzer;
 
@@ -79,6 +80,7 @@ public class RecordActivity extends Activity {
 		});
 		
 		
+		
 		/*NEED TO DECIDE:
 		 * Where to put the Dropbox Upload, here or in AudioAnalyzer or in Helper class
 		 * Currently it is here but that is inconvenient since most of the processing happens in AudioAnalyzer
@@ -117,6 +119,19 @@ public class RecordActivity extends Activity {
 	
 	// -----END onCreate
 
+	@Override
+	public void onResume() {
+		Log.i(TAG,"Onresume called");
+		super.onResume();
+		if (mAudioAnalyzer.isGraphEveryCycle()) {
+			Log.i(TAG,"Resuming Recording");
+			mAudioAnalyzer.resumeRecording();
+		}
+	}
+	
+	
+	// -----END onResume
+	
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		// Inflate the menu; this adds items to the action bar if it is present.
@@ -164,7 +179,7 @@ public class RecordActivity extends Activity {
 				Thread.sleep(1);
 			} catch (InterruptedException e) {}
 		}
-		mAudioAnalyzer.makeGraphs(mAudioAnalyzer.getIntervalRawData(), mAudioAnalyzer.getIntervalFreqData());
+		mAudioAnalyzer.makeGraphs(mAudioAnalyzer.getRawAudioDataDoubles(), mAudioAnalyzer.getIntervalFreqData());
 	}
 				
 
