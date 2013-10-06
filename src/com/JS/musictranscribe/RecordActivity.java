@@ -81,11 +81,6 @@ public class RecordActivity extends Activity {
 		
 		
 		
-		/*NEED TO DECIDE:
-		 * Where to put the Dropbox Upload, here or in AudioAnalyzer or in Helper class
-		 * Currently it is here but that is inconvenient since most of the processing happens in AudioAnalyzer
-		 * I'm thinking best is in an external helper class for AudioAnalyzer
-		 */
 		dDBDataUploadToggleButton = (Button) findViewById(R.id.dDropbox_Upload_Button);
 		dDBDataUploadToggleButton.setEnabled(false); //only enable if DB is accessible
 		dDBDataUploadToggleButton.setOnClickListener(new View.OnClickListener() {
@@ -125,10 +120,9 @@ public class RecordActivity extends Activity {
 	 */
 	@Override
 	public void onResume() {
-		Log.i(TAG,"Onresume called");
 		super.onResume();
 		if (mAudioAnalyzer.isGraphEveryCycle()) {
-			Log.i(TAG,"Resuming Recording");
+			Log.i(TAG,"GraphEveryCycle is TRUE, Resuming Recording");
 			resumeRecording();
 		}
 	}
