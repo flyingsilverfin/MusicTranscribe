@@ -10,7 +10,7 @@
     <LinearLayout
         android:id="@+id/graph"
         android:layout_width="fill_parent"
-        android:layout_height="250dp"
+        android:layout_height="300dp"
         android:orientation="vertical" />
 
     <Spinner
@@ -29,5 +29,9 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Percentages" />
+    <Button android:id="@+id/disable_cont_graphing_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Disable Continous Graphing"/>
 
 </LinearLayout>

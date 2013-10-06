@@ -1,5 +1,7 @@
 package com.JS.musictranscribe;
 
+import java.util.List;
+
 public class Helper {
 
 	public static int nextLowerPowerOf2(int num) {
@@ -34,4 +36,19 @@ public class Helper {
 	}	
 	
 	
+	public static int findInList(List<String> l, String toFind) {
+		return l.indexOf(toFind);
+	}
+	
+	public static boolean listHas(List<String> l, String toFind) {
+		if ( findInList(l, toFind) == -1 ) {
+			return false;
+		}
+		else {
+			return true;
+		}
+	}
+	
+	
 }
+		

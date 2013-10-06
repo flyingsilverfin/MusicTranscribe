@@ -1,7 +1,6 @@
 package com.JS.musictranscribe;
 
-import java.io.File;
-
+import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.media.AudioFormat;
@@ -15,6 +14,7 @@ public class AudioAnalyzer {
 
 	//for log
 	private static final String TAG = "Audio_Analyzer";
+	public static final int GRAPH_EVERY_CYCLE_IDNUM = 1;
 	
 	//threading logic
 	private boolean mIsDone = false;
@@ -58,6 +58,7 @@ public class AudioAnalyzer {
 	private boolean dDBDataUpload = false;
 	private boolean dDBLoggedIn = false;
 	private DropboxAPI<AndroidAuthSession> mDBApi; //this will only be initialized if setDBLoggedIn(true) is called
+	private int dDropboxFileCounter = 0;
 
 	
 	//constructor
@@ -182,7 +183,8 @@ public class AudioAnalyzer {
 	private void analyze() {
 		if (isDBLoggedIn() && isDBDataUploadEnabled()) {
 			Log.i(TAG,"attempting to write file");
-			DropboxHelper.putFile("/sdcard/testfile2.txt", getIntervalFreqData(), mDBApi);
+			DropboxHelper.putFile("/sdcard/datafile"+dDropboxFileCounter+".txt", getIntervalFreqData(), mDBApi);
+			dDropboxFileCounter++;
 		}
 		
 		if (dGraphEveryCycle) {
@@ -203,8 +205,12 @@ public class AudioAnalyzer {
 		graphIntent.putExtra("xAxis_rawAudio", getTimeAxisInMs(rawAudioData.length));
 		graphIntent.putExtra("rawAudio", rawAudioData);
 
-		mContext.startActivity(graphIntent); //can't make/start activity from non-activity?
+		graphIntent.putExtra("dGraphEveryCycle", isGraphEveryCycle());
+		
+		((Activity) mContext).startActivityForResult(graphIntent, GRAPH_EVERY_CYCLE_IDNUM);
 	}
+	
+
 
 
 	//get time axis of the data in microseconds
@@ -217,11 +223,22 @@ public class AudioAnalyzer {
 		return timeAxis;
 	}
 
+	/*
+	 * Explanation: 
+	 * lowest frequency = 1 cycle in the full length (time) of the data
+	 * since the number of FFT coefficients = ( 1/2 of the number of audio data ) - 1
+	 * the -1 is there since we give up one datapoint for summary data in the FFT
+	 * 
+	 * So basically what we do is:
+	 * samplingSpeed/((numFreqData+1) *1) = lowest frequency possible
+	 * then the next higher frequency in the FFT is just 2*^, 3*^, 4*above etc 
+	 */
 	//returns double[] of hertz axis of the FFT
 	public double[] getHertzAxis(int numFreqData) {
 		double[] frequencyAxis = new double[numFreqData];
 		for (int i = 0; i < numFreqData; i++) {
-			frequencyAxis[i] = i * mSamplingSpeed / (numFreqData*2); // *2  bec there were 2*numFftCoeffs of raw points, 					//other way of looking at it: basic hertz = 1/time = 1/(numData/SamplingSpeed)	
+			frequencyAxis[i] = (i+1) * mSamplingSpeed / ((numFreqData +1)*2);			
+			//other way of looking at it: basic hertz = 1/time = 1/(numData/SamplingSpeed)	
 		}
 		return frequencyAxis;
 	}
@@ -360,7 +377,7 @@ other random TODO's:
 
 		mFFT.realForward(audioDataCopy);
 
-		double[] fftCoeffs = new double[audioDataCopy.length / 2];
+		double[] fftCoeffs = new double[(audioDataCopy.length / 2) - 1];
 
 		for (int i = 2; i < audioData.length; i += 2) {
 			fftCoeffs[(i - 2) / 2] = Math.sqrt(Math.pow(audioDataCopy[i], 2)

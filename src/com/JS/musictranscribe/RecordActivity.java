@@ -7,6 +7,7 @@ import com.dropbox.client2.session.AppKeyPair;
 import com.dropbox.client2.session.Session.AccessType;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.media.MediaRecorder.AudioSource;
 import android.os.Bundle;
@@ -34,7 +35,6 @@ public class RecordActivity extends Activity {
 	private boolean mIsFirstToggle = true;
 	private Button mRecordingPausePlayButton;	
 	private Button mFinishRecordingButton;
-	private Button mDisableContGraphing;
 	private Button mGraphButton;
 	private AudioAnalyzer mAudioAnalyzer;
 
@@ -113,24 +113,29 @@ public class RecordActivity extends Activity {
 			dDBDataUploadToggleButton.setEnabled(false);
 			mAudioAnalyzer.setDBLoggedIn(false);
 		}
-
 		
 	}
 	
 	// -----END onCreate
 
+	/*
+	 * This is here to catch returning back buttons
+	 * Checks to see if graphEveryCycle is enabled
+	 * if yes, then start recorder right away again!
+	 */
 	@Override
 	public void onResume() {
 		Log.i(TAG,"Onresume called");
 		super.onResume();
 		if (mAudioAnalyzer.isGraphEveryCycle()) {
 			Log.i(TAG,"Resuming Recording");
-			mAudioAnalyzer.resumeRecording();
+			resumeRecording();
 		}
 	}
 	
 	
 	// -----END onResume
+	
 	
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
@@ -139,6 +144,24 @@ public class RecordActivity extends Activity {
 		return true;
 	}
 
+	
+	/*
+	 * Required to be overridden to get intent back from sub-activity
+	 */
+	@Override 
+	public void onActivityResult(int requestCode, int resultCode, Intent returnIntent) {     
+	  super.onActivityResult(requestCode, resultCode, returnIntent); 
+	  switch(requestCode) { 
+	    case (AudioAnalyzer.GRAPH_EVERY_CYCLE_IDNUM) : { 
+	      if (resultCode == Activity.RESULT_OK) { 
+		      dGraphEveryCycle = returnIntent.getBooleanExtra("disableGraphContinously", true);
+		      toggleGraphEveryCycle(); //updates based on dGraphEveryCycle so it's safe this way
+		      pauseRecording();
+	      } 
+	      break; 
+    	} 
+	  } 
+	}
 
 	private void toggleRecording() {
 		if (mIsFirstToggle) { //this only runs the first time
@@ -155,8 +178,16 @@ public class RecordActivity extends Activity {
 			mAudioAnalyzer.pauseRecording();
 		}
 		mRecordingPausePlayButton.setText("paused: " +( mIsRecordingPaused ? "true" : "false"));
-
-
+	}
+	
+	private void pauseRecording() {
+		mIsRecordingPaused = false;
+		toggleRecording();
+	}
+	
+	private void resumeRecording() {
+		mIsRecordingPaused = true;
+		toggleRecording();
 	}
 
 	
