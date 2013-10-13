@@ -38,7 +38,7 @@ public class AudioAnalyzer {
 	private int mAudioDataFormat;		//for actual system
 
 	//for flushing the recorder out before starting to record actual data
-	private final int mNUM_BUFFER_STARTUP_FLUSHES = 10;
+	private final int mNUM_BUFFER_STARTUP_FLUSHES = 3;
 	
 	private short[] mIntervalRawData; 	// to copy out the internal buffer 
 	private double[] mIntervalFreqData; //for fft data
@@ -59,6 +59,9 @@ public class AudioAnalyzer {
 	private boolean dDBLoggedIn = false;
 	private DropboxAPI<AndroidAuthSession> mDBApi; //this will only be initialized if setDBLoggedIn(true) is called
 	private int dDropboxFileCounter = 0;
+	
+	private long dTimingVar1 = 0;
+	private long dTimingVar2;
 
 	
 	//constructor
@@ -78,9 +81,7 @@ public class AudioAnalyzer {
 
 		setContext(context);
 		
-		
-		Log.i(TAG,"\tTesting time: " + System.nanoTime());
-		Log.i(TAG,"\tSubsequent time: " + System.nanoTime());
+	
 		
 		Log.i(TAG, "creating new recorder");
 		mRecorder = new AudioRecord(mAudioSource, mSamplingSpeed, mChannelConfig, mAudioDataFormat, mInternalBufferSize);
@@ -104,6 +105,7 @@ public class AudioAnalyzer {
 
 		
 		Log.i(TAG, "Initializing dropbox API settings");
+		//actually done when RecordActivity calls setDBLoggedIn(t/f) -- this confusing/bad style I think
 
 	}
 
@@ -181,6 +183,7 @@ public class AudioAnalyzer {
 	 * 
 	 */
 	private void analyze() {
+				
 		if (isDBLoggedIn() && isDBDataUploadEnabled()) {
 			Log.i(TAG,"attempting to write file");
 			DropboxHelper.putFile("/sdcard/datafile"+dDropboxFileCounter+".txt", getIntervalFreqData(), mDBApi);
@@ -284,10 +287,23 @@ other random TODO's:
 			while (!mIsDone) {
 				while (!mIsRecordingPaused) { //for external interrupting
 					if (mIsAnalysisDone) { //for parallel thread interrupting
+
+						Log.i(TAG, "Cycle time (micros):                " + (System.nanoTime() - dTimingVar1)/1000);
+						dTimingVar1 = System.nanoTime();
+
 						numRecorded = mRecorder.read(mIntervalRawData, 0, mIntervalRawData.length); // copy out new data
-						Log.d(TAG,"\tNumber of data recorded: " + numRecorded + "\n mIsRecordingPaused:" + mIsRecordingPaused);
+						
+						long dTmp = System.nanoTime();
+						Log.i(TAG, "  Time to read from recorder:       " + (dTmp -dTimingVar1)/1000);
+
 						mIsAnalysisDone = false;
 						mAnalyzerThread.interrupt();
+						
+						Log.i(TAG, "  Other overhead READ thread:       " + (System.nanoTime()-dTmp)/1000);
+						
+						Log.d(TAG,"\t  Number of data recorded: " + numRecorded + "\n  mIsRecordingPaused:" + mIsRecordingPaused);
+
+
 					}
 					pause();
 				}
@@ -525,11 +541,6 @@ other random TODO's:
 		int storageTime = (int)(1000.0*mInternalBufferSize/((float) (mIs16BitFormat ? 2 : 1) * mSamplingSpeed));
 		Log.i(TAG, "This will hold " + storageTime + " ms\n");
 	}
-	
-	
-	
-	
-
 	
 	
 }
