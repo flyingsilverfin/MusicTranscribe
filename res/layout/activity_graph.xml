@@ -10,7 +10,7 @@
     <LinearLayout
         android:id="@+id/graph"
         android:layout_width="fill_parent"
-        android:layout_height="300dp"
+        android:layout_height="wrap_content"
         android:orientation="vertical" />
 
     <Spinner
