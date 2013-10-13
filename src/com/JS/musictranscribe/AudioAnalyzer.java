@@ -444,9 +444,10 @@ other random TODO's:
 
 	//get an appropriate internal recorder buffer size
 	private int getInternalBufferSize(int samplingSpeed, boolean isMono, boolean is16Bit) {
-		int size = 100+AudioRecord.getMinBufferSize(samplingSpeed, 
+		int minBuffer = AudioRecord.getMinBufferSize(samplingSpeed, 
 				isMono ? AudioFormat.CHANNEL_IN_MONO : AudioFormat.CHANNEL_IN_STEREO, 
 				is16Bit ? AudioFormat.ENCODING_PCM_16BIT : AudioFormat.ENCODING_PCM_8BIT);
+		int size = minBuffer < 10000 ? 10000 : 15000;
 		if (size%2 == 1) {
 			Log.d(TAG,"Calculated Internal Buffer is odd, incrementing");
 			size++;
