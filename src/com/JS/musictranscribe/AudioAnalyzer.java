@@ -74,22 +74,17 @@ public class AudioAnalyzer {
 		setAudioDataFormat(is16BitFormat);
 		
 		logInternalBufferCapacity();
-
 		
+
 		setContext(context);
+		
+		
+		Log.i(TAG,"\tTesting time: " + System.nanoTime());
+		Log.i(TAG,"\tSubsequent time: " + System.nanoTime());
 		
 		Log.i(TAG, "creating new recorder");
 		mRecorder = new AudioRecord(mAudioSource, mSamplingSpeed, mChannelConfig, mAudioDataFormat, mInternalBufferSize);
 		
-		/* DEBUG
-		Log.d(TAG,"mAudioSource "+mAudioSource);
-		Log.d(TAG,"mSamplingSpeepd " + mSamplingSpeed);
-		Log.d(TAG,"mChannelConfig " + mChannelConfig);
-		Log.d(TAG,"mAudioDataFormat "+mAudioDataFormat);
-		Log.d(TAG,"mInternalBufferSize " + mInternalBufferSize);
-		Log.d(TAG,"MIN INTERNAL BUFFER SIZE " + AudioRecord.getMinBufferSize(mSamplingSpeed, mChannelConfig, mAudioDataFormat));
-		
-		*/
 		
 		mCompleteRawData = new short[mMAX_NOTE_SECONDS * mSamplingSpeed];
 
@@ -180,6 +175,11 @@ public class AudioAnalyzer {
 	}	
 
 
+	
+	/*
+	 * This is called after the FFT is run
+	 * 
+	 */
 	private void analyze() {
 		if (isDBLoggedIn() && isDBDataUploadEnabled()) {
 			Log.i(TAG,"attempting to write file");
@@ -194,6 +194,10 @@ public class AudioAnalyzer {
 		}
 	}		
 
+	
+	/*
+	 * This creates 
+	 */
 	public void makeGraphs(double[] rawAudioData, double[] frequencyData) {
 		Log.i(TAG,"Preparing Graphs");
 		
@@ -371,7 +375,11 @@ other random TODO's:
 		}	
 	}
 
-	//returns FFT (both parts combined into single data)
+	
+	/*
+	 * This is the actual FFT function
+	 * Takes the audioData and updates returns a double[]
+	 */
 	public double[] getFreqData(short[] audioData) {
 		double[] audioDataCopy = getRawAudioDataDoubles(); //get copy of data
 

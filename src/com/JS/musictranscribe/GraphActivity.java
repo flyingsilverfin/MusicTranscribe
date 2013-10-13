@@ -84,7 +84,7 @@ public class GraphActivity extends Activity {
 		mPercentActivityButton.setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View v) {
-				Intent intent = new Intent(GraphActivity.this, PercentData.class);
+				Intent intent = new Intent(GraphActivity.this, PercentDataActivity.class);
 				String key2 = "xAxis_" + String.valueOf(graphChoicesSpinner.getSelectedItem());
 				intent.putExtra("key", key2);
 				intent.putExtra("xFFT", getIntent().getDoubleArrayExtra(key2));

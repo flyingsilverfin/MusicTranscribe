@@ -44,7 +44,7 @@
                 android:value="MainActivity" />
         </activity>
         <activity
-            android:name="com.JS.musictranscribe.PercentData"
+            android:name="com.JS.musictranscribe.PercentDataActivity"
             android:label="@string/title_activity_percent_data" >
         </activity>
         

@@ -9,7 +9,7 @@ import android.util.Log;
 import android.view.Menu;
 import android.widget.TextView;
 
-public class PercentData extends Activity {
+public class PercentDataActivity extends Activity {
 	double[] xaxis;
 	double[] data;
 	double[][] fft = new double[2048][2];
