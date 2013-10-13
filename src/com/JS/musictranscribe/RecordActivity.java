@@ -90,7 +90,7 @@ public class RecordActivity extends Activity {
 			}
 		});
 
-		
+		 
 		
 		mAudioAnalyzer = new AudioAnalyzer(AudioSource.MIC, mSAMPLING_SPEED, 
 				true, true, mEXTERNAL_BUFFER_SIZE, this); 
