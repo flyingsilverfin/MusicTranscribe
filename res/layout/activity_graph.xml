@@ -16,7 +16,7 @@
         />
 
     <LinearLayout
-        android:id="@+id/graphOptions"
+        android:id="@+id/graph_options"
         android:layout_width="fill_parent"
         android:layout_height ="wrap_content"
         android:layout_weight="1"
@@ -28,22 +28,29 @@
 	        android:id="@+id/graph_spinner"
 	        android:layout_width="fill_parent"
 	        android:layout_height="wrap_content" />
-	
-	    <Button
-	        android:id="@+id/submit_graph_choice_button"
-	        android:layout_width="wrap_content"
-	        android:layout_height="wrap_content"
-	    	android:text="@string/submit_button" />
-	
-	    <Button
-	        android:id="@+id/percentb"
-	        android:layout_width="wrap_content"
-	        android:layout_height="wrap_content"
-	        android:text="Percentages" />
-	    <Button android:id="@+id/disable_cont_graphing_button"
-	        android:layout_width="wrap_content"
-	        android:layout_height="wrap_content"
-	        android:text="Disable Continous Graphing"/>
+		
+	    <LinearLayout
+			android:id="@+id/graph_buttons"
+			android:layout_width="fill_parent"
+			android:layout_height="wrap_content"
+			android:orientation="horizontal"
+			>
+		    <Button
+		        android:id="@+id/submit_graph_choice_button"
+		        android:layout_width="wrap_content"
+		        android:layout_height="wrap_content"
+		    	android:text="@string/submit_button" />
+		
+		    <Button
+		        android:id="@+id/percentb"
+		        android:layout_width="wrap_content"
+		        android:layout_height="wrap_content"
+		        android:text="Percentages" />
+		    <Button android:id="@+id/disable_cont_graphing_button"
+		        android:layout_width="wrap_content"
+		        android:layout_height="wrap_content"
+		        android:text="Disable Continous Graphing"/>
+	    </LinearLayout>
     </LinearLayout>
 
 </LinearLayout>
