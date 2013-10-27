@@ -4,6 +4,15 @@ import java.util.List;
 
 public class Helper {
 
+	/*
+	 * App-wide Audio options
+	 */
+	public static int SAMPLING_SPEED = 44100;
+	public static  final int DESIRED_EXTERNAL_BUFFER_TIME = 100; //desired milliseconds
+	public static  final int EXTERNAL_BUFFER_SIZE = nextLowerPowerOf2((int)(SAMPLING_SPEED*((float)DESIRED_EXTERNAL_BUFFER_TIME/1000))); //find next lower power of two
+	public static final int EXTERNAL_BUFFER_TIME = EXTERNAL_BUFFER_SIZE*1000/SAMPLING_SPEED; //find actual time being measured based on above
+	
+	
 	public static int nextLowerPowerOf2(int num) {
 		int r = 1; 
 		num = num >> 1;

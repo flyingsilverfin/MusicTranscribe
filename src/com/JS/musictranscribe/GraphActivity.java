@@ -120,8 +120,10 @@ public class GraphActivity extends Activity {
 		
 		//set up graphView
 		graphView = new LineGraphView(this, "");
+		
+		
 		graphView.setScalable(false);
-		graphView.setBackgroundColor(Color.BLACK);
+		graphView.setBackgroundColor(Color.WHITE);
 		graphView.setScrollable(true);
 		
 		((LineGraphView)graphView).setDrawBackground(false);

@@ -11,7 +11,6 @@ import android.widget.Button;
 
 import com.dropbox.client2.DropboxAPI;
 import com.dropbox.client2.android.AndroidAuthSession;
-import com.dropbox.client2.session.Session.AccessType;
 import com.dropbox.client2.session.TokenPair;
 
 
@@ -21,6 +20,7 @@ public class MainActivity extends Activity {
 	private static String TAG = "MainActivity";
 	
 	private Button mGotoRecordingButton;
+	private Button mGotoDatacollectButton;
 	private Button mLibraryButton;
 	private Button mDropboxLoginButton;
 	
@@ -46,6 +46,19 @@ public class MainActivity extends Activity {
 			}
 		});
 		
+		mGotoDatacollectButton = (Button)findViewById(R.id.goto_datacollect_activity);
+		mGotoDatacollectButton.setOnClickListener(new View.OnClickListener() {
+			
+			@Override
+			public void onClick(View v) {
+				Intent intent = new Intent(MainActivity.this, DatacollectActivity.class);
+				intent.putExtra("DBLoggedIn", isLoggedIn());
+				startActivity(intent);
+				
+			}
+		});
+		
+		
 		mLibraryButton = (Button) findViewById(R.id.library_button);
 		mLibraryButton.setOnClickListener(new View.OnClickListener() {
 			@Override
@@ -62,7 +75,7 @@ public class MainActivity extends Activity {
 				
 				if (!isLoggedIn()) {
 					
-			        mDBApi = DropboxHelper.getDBSession(MainActivity.this);
+			        mDBApi = Helper_Dropbox.getDBSession(MainActivity.this);
 			        setLoggedIn(mDBApi.getSession().isLinked());
 			        if (!isLoggedIn()) {
 			        	mDBApi.getSession().startAuthentication(MainActivity.this);
@@ -73,7 +86,7 @@ public class MainActivity extends Activity {
 				else {
 					mDBApi.getSession().unlink();
 					setLoggedIn(false);
-					DropboxHelper.clearKeys(MainActivity.this);
+					Helper_Dropbox.clearKeys(MainActivity.this);
 					//as we are now logged out
 					mDropboxLoginButton.setText("Log In to Dropbox");
 				}
@@ -112,7 +125,7 @@ public class MainActivity extends Activity {
 	
 	                // Store it locally in our app for later use
 	                TokenPair tokens = session.getAccessTokenPair();
-	                DropboxHelper.storeKeys(tokens.key, tokens.secret, this);
+	                Helper_Dropbox.storeKeys(tokens.key, tokens.secret, this);
 	                setLoggedIn(true);
 	            } catch (IllegalStateException e) {
 	                Log.i(TAG, "Error authenticating", e);

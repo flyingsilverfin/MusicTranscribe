@@ -15,5 +15,16 @@
     <string name="dDropbox_upload_button_text">DB:false</string>
     <string name="title_activity_percent_data">PercentData</string>
     <string name="hello_world">Hello world!</string>
+    
+    <!-- Data collect Activity -->
+    <string name="title_activity_datacollect">Datacollect Activity</string>
+    <string name="goto_datacollect_activity_button">Data Collection</string>
+    <string name="default_num_recordings">15</string>
+    <string name="start_n_recordings">Get this many recordings</string>
+    <string name="default_recording_time">3000</string>
+    <string name="start_timed_recording">Record this long (ms)</string>
+        
+    
+    
 
 </resources>

@@ -20,16 +20,10 @@ public class RecordActivity extends Activity {
 
 	private static final String TAG = "RecordActivity";
 	
-	private final int mSAMPLING_SPEED = 44100; //samples per second, 44100 default (guaranteed support on devices)
 	
 	private final int mMAX_NOTE_SECONDS = 50; 			// SECONDS
-	private final int mFULL_BUFFER_SIZE = mSAMPLING_SPEED*mMAX_NOTE_SECONDS;
-	private final float mRECORDER_BUFFER_SIZE_MULTIPLIER = 1; //*0.5 bec 16 bit
+	private final int mFULL_BUFFER_SIZE = Helper.SAMPLING_SPEED*mMAX_NOTE_SECONDS;
 
-	private final int mEXTERNAL_BUFFER_TIME = 100; //desired milliseconds
-	private final int mEXTERNAL_BUFFER_SIZE = Helper.nextLowerPowerOf2((int)(mSAMPLING_SPEED*((float)mEXTERNAL_BUFFER_TIME/1000))); //find next lower power of two
-	private final int mACTUAL_EXTERNAL_BUFFER_TIME = mEXTERNAL_BUFFER_SIZE*1000/mSAMPLING_SPEED; //find actual time being measured based on above
-	
 	private boolean mIsRecordingPaused = true;
 	private boolean mIsRecordingDone = false;
 	private boolean mIsFirstToggle = true;
@@ -92,11 +86,9 @@ public class RecordActivity extends Activity {
 
 		 
 		
-		mAudioAnalyzer = new AudioAnalyzer(AudioSource.MIC, mSAMPLING_SPEED, 
-				true, true, mEXTERNAL_BUFFER_SIZE, this); 
+		mAudioAnalyzer = new AudioAnalyzer(AudioSource.MIC, Helper.SAMPLING_SPEED, 
+				true, true, Helper.EXTERNAL_BUFFER_SIZE, this); 
 				//isMono and is16Bit = true, this = context to pass in for graphing activity source
-
-		Log.i(TAG,"Desired Buffer Time: "+mEXTERNAL_BUFFER_TIME+", Actual buffer time:"+ mACTUAL_EXTERNAL_BUFFER_TIME +" \n\n");
 
 		
 		mIsDBLoggedIn = getIntent().getBooleanExtra("DBLoggedIn", false);
@@ -204,7 +196,7 @@ public class RecordActivity extends Activity {
 				Thread.sleep(1);
 			} catch (InterruptedException e) {}
 		}
-		mAudioAnalyzer.makeGraphs(mAudioAnalyzer.getRawAudioDataDoubles(), mAudioAnalyzer.getIntervalFreqData());
+		mAudioAnalyzer.makeGraphs(mAudioAnalyzer.getRawAudioArrayAsDoubles(), mAudioAnalyzer.getIntervalFreqData());
 	}
 				
 

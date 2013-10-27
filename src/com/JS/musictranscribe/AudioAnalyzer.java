@@ -3,18 +3,14 @@ package com.JS.musictranscribe;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
-import android.media.AudioFormat;
-import android.media.AudioRecord;
 import android.util.Log;
 
-import com.dropbox.client2.DropboxAPI;
-import com.dropbox.client2.android.AndroidAuthSession;
 
-public class AudioAnalyzer {
+public class AudioAnalyzer extends Audio {
 
 	//for log
 	private static final String TAG = "Audio_Analyzer";
-	public static final int GRAPH_EVERY_CYCLE_IDNUM = 1;
+	public static final int GRAPH_EVERY_CYCLE_IDNUM = 1; //for returning data back to activity
 	
 	//threading logic
 	private boolean mIsDone = false;
@@ -28,36 +24,20 @@ public class AudioAnalyzer {
 
 	//parameters for recorder
 	private final int mMAX_NOTE_SECONDS = 50; //default
-	private int mSamplingSpeed;
-	private int mInternalBufferSize;
-	private int mExternalBufferSize;
-	private int mAudioSource;
-	private boolean mIsMonoFormat; 		//for more user friendliness
-	private boolean mIs16BitFormat;		//for more user friendliness
-	private int mChannelConfig;			//for actual system
-	private int mAudioDataFormat;		//for actual system
 
-	//for flushing the recorder out before starting to record actual data
-	private final int mNUM_BUFFER_STARTUP_FLUSHES = 3;
 	
-	private short[] mIntervalRawData; 	// to copy out the internal buffer 
 	private double[] mIntervalFreqData; //for fft data
 
 	private short[] mCompleteRawData; // to store the max 50 seconds
 
-	//Incoming context
-	private Context mContext;
 	
 	//library-based objects
 	private DoubleFFT_1D mFFT;
-	private AudioRecord mRecorder;
 	
-
-	//debugging
+	
+	//Debug
 	public boolean dGraphEveryCycle = false;
-	private boolean dDBDataUpload = false;
-	private boolean dDBLoggedIn = false;
-	private DropboxAPI<AndroidAuthSession> mDBApi; //this will only be initialized if setDBLoggedIn(true) is called
+	//Dropbox
 	private int dDropboxFileCounter = 0;
 	
 	private long dTimingVar1 = 0;
@@ -67,35 +47,15 @@ public class AudioAnalyzer {
 	//constructor
 	public AudioAnalyzer(int audioSource, int samplingSpeed, boolean isMonoFormat, boolean is16BitFormat, int externalBufferSize, Context context ) {
 
-		setInternalBufferSize(getInternalBufferSize(samplingSpeed,
-								isMonoFormat, is16BitFormat));
-
-		setSamplingSpeed(samplingSpeed);
-		setExternalBufferSize(externalBufferSize);
-		setAudioSource(audioSource);
-		setChannelConfig(isMonoFormat);
-		setAudioDataFormat(is16BitFormat);
-		
-		logInternalBufferCapacity();
-		
-
-		setContext(context);
+		super(audioSource,samplingSpeed, isMonoFormat, is16BitFormat, externalBufferSize, context);
 		
 	
-		
-		Log.i(TAG, "creating new recorder");
-		mRecorder = new AudioRecord(mAudioSource, mSamplingSpeed, mChannelConfig, mAudioDataFormat, mInternalBufferSize);
-		
-		
-		mCompleteRawData = new short[mMAX_NOTE_SECONDS * mSamplingSpeed];
+		mCompleteRawData = new short[mMAX_NOTE_SECONDS * getSamplingSpeed()];
 
-		mIntervalRawData = new short[mExternalBufferSize];
-		mIntervalFreqData = new double[mExternalBufferSize/2]; //same size since we got two components
-															//for each freq, to be combined into a single set
-
+		mIntervalFreqData = new double[externalBufferSize/2]; 
 		mFFT = new DoubleFFT_1D(mExternalBufferSize);
 
-		Log.i(TAG,"initializing runnables and threads");
+		Log.i(TAG,"\tinitializing runnables and threads");
 		mReaderRunnable = new readerRunnable();
 		mAnalyzerRunnable = new analyzerRunnable();
 		mReaderThread = new Thread(mReaderRunnable);
@@ -113,16 +73,15 @@ public class AudioAnalyzer {
 
 	//returns true if succeeded, false if could not start
 	public boolean startRecording() {
-		try {
-			mRecorder.startRecording();
+		startAudioRecording();
+		if (isRecorderRunning()) {
 			mIsRecordingPaused = false;
 			mIsDone = false;
-		} catch (Throwable e) {
-			Log.e(TAG, "Recorder failed to start");
+		}
+		else {
 			mIsDone = true;
 			return false;
 		}
-		
 		(new Thread() { 
 			public void run() { 			
 				cleanBuffer();
@@ -139,13 +98,14 @@ public class AudioAnalyzer {
 	public void resumeRecording() {
 		(new Thread() {
 			public void run() {
+				startAudioRecording();
 				cleanBuffer();
-				mIsRecordingPaused = false;
-				try {
-					mRecorder.startRecording();
-				} catch (Throwable e) {
-					Log.e(TAG,"Failed to resume recorder");
-					return;
+				if (isRecorderRunning()){
+					mIsRecordingPaused = false;
+				}
+				else {
+					mIsRecordingPaused = true;
+					return; //stop because recording failed to start
 				}
 				Log.i(TAG,"Interrupting threads to resume");
 				mReaderThread.interrupt();
@@ -157,24 +117,16 @@ public class AudioAnalyzer {
 
 	public void pauseRecording() {
 		mIsRecordingPaused = true; 
-		while (!isReaderPaused()) {} //wait for reader to actually pause before stopping recorder -- weird conflict otherwise
-		mRecorder.stop();
+		while (!isReaderThreadPaused()) {} //wait for reader to actually pause before stopping recorder -- weird conflict otherwise
+		stopAudioRecording();
 	}
 
 
 	public void finishRecording() {
 		mIsDone = true;
 		mIsRecordingPaused = true;
-		mRecorder.stop();
+		stopAudioRecording();
 	}
-
-	//flush the internal buffer of the recorder (get rid of noise)
-	public void cleanBuffer() {
-		for ( int i = 0; i < mNUM_BUFFER_STARTUP_FLUSHES; i++) {
-			mRecorder.read(new short[mInternalBufferSize],0,mInternalBufferSize);
-		}
-		Log.i(TAG, "wiped recorder: " + mNUM_BUFFER_STARTUP_FLUSHES+ " times\n");
-	}	
 
 
 	
@@ -186,14 +138,14 @@ public class AudioAnalyzer {
 				
 		if (isDBLoggedIn() && isDBDataUploadEnabled()) {
 			Log.i(TAG,"attempting to write file");
-			DropboxHelper.putFile("/sdcard/datafile"+dDropboxFileCounter+".txt", getIntervalFreqData(), mDBApi);
+			Helper_Dropbox.putFile("/sdcard/datafile"+dDropboxFileCounter+".txt", getIntervalFreqData(), mDBApi);
 			dDropboxFileCounter++;
 		}
 		
 		if (dGraphEveryCycle) {
 			pauseRecording(); //somehow this is pausing this thread (or something) too!!!
 			Log.i(TAG,""+dGraphEveryCycle);
-			makeGraphs(getRawAudioDataDoubles(), mIntervalFreqData);
+			makeGraphs(getRawAudioArrayAsDoubles(), mIntervalFreqData);
 		}
 	}		
 
@@ -210,7 +162,7 @@ public class AudioAnalyzer {
 		graphIntent.putExtra("FFT", frequencyData);
 
 		graphIntent.putExtra("xAxis_rawAudio", getTimeAxisInMs(rawAudioData.length));
-		graphIntent.putExtra("rawAudio", rawAudioData);
+		graphIntent.putExtra("rawAudio", getRawAudioArrayAsDoubles());
 
 		graphIntent.putExtra("dGraphEveryCycle", isGraphEveryCycle());
 		
@@ -225,7 +177,7 @@ public class AudioAnalyzer {
 		double[] timeAxis = new double[numRawData];
 	
 		for (int i = 0; i < numRawData; i++) {
-			timeAxis[i] = 1000*1000*((float)i/mSamplingSpeed);
+			timeAxis[i] = 1000*1000*((float)i/getSamplingSpeed());
 		}
 		return timeAxis;
 	}
@@ -244,7 +196,7 @@ public class AudioAnalyzer {
 	public double[] getHertzAxis(int numFreqData) {
 		double[] frequencyAxis = new double[numFreqData];
 		for (int i = 0; i < numFreqData; i++) {
-			frequencyAxis[i] = (i+1) * mSamplingSpeed / ((numFreqData +1)*2);			
+			frequencyAxis[i] = (i+1) * getSamplingSpeed() / ((numFreqData +1)*2);			
 			//other way of looking at it: basic hertz = 1/time = 1/(numData/SamplingSpeed)	
 		}
 		return frequencyAxis;
@@ -288,10 +240,11 @@ other random TODO's:
 				while (!mIsRecordingPaused) { //for external interrupting
 					if (mIsAnalysisDone) { //for parallel thread interrupting
 
-						Log.i(TAG, "Cycle time (micros):                " + (System.nanoTime() - dTimingVar1)/1000);
+						Log.i(TAG, "\tLast Cycle time (micros):                " + (System.nanoTime() - dTimingVar1)/1000);
 						dTimingVar1 = System.nanoTime();
 
-						numRecorded = mRecorder.read(mIntervalRawData, 0, mIntervalRawData.length); // copy out new data
+						numRecorded = recordAudio(); 	//defined in superclass
+														//updates mRawAudioData
 						
 						long dTmp = System.nanoTime();
 						Log.i(TAG, "  Time to read from recorder:       " + (dTmp -dTimingVar1)/1000);
@@ -300,9 +253,6 @@ other random TODO's:
 						mAnalyzerThread.interrupt();
 						
 						Log.i(TAG, "  Other overhead READ thread:       " + (System.nanoTime()-dTmp)/1000);
-						
-						Log.d(TAG,"\t  Number of data recorded: " + numRecorded + "\n  mIsRecordingPaused:" + mIsRecordingPaused);
-
 
 					}
 					pause();
@@ -397,7 +347,7 @@ other random TODO's:
 	 * Takes the audioData and updates returns a double[]
 	 */
 	public double[] getFreqData(short[] audioData) {
-		double[] audioDataCopy = getRawAudioDataDoubles(); //get copy of data
+		double[] audioDataCopy = getRawAudioArrayAsDoubles(); //get copy of data
 
 		mFFT.realForward(audioDataCopy);
 
@@ -410,27 +360,6 @@ other random TODO's:
 		return fftCoeffs;
 	}
 
-	//get copy of Audio Data -- not needed right now, could be used later
-	public short[] getRawAudioDataShorts() {
-		short[] tmpAudioData = new short[mIntervalRawData.length];
-		for (int i = 0; i < mIntervalRawData.length; i++) {
-			tmpAudioData[i] = mIntervalRawData[i];
-		}
-		return tmpAudioData;
-	}
-	
-	public double[]  getRawAudioDataDoubles() {
-		double[] tmpAudioData = new double[mIntervalRawData.length];
-		for ( int i = 0; i < mIntervalRawData.length; i++) {
-			tmpAudioData[i] = (double) mIntervalRawData[i];
-		}
-		return tmpAudioData;
-	}
-	
-	
-	public short[] getIntervalRawData() {
-		return mIntervalRawData;
-	}
 	
 	public double[] getIntervalFreqData() {
 		return mIntervalFreqData;
@@ -439,88 +368,13 @@ other random TODO's:
 
 	//calculate the FFT and save it to the correct private variable
 	public void updateIntervalFreqData() {
-		mIntervalFreqData = getFreqData(mIntervalRawData);
-	}
-
-	//get an appropriate internal recorder buffer size
-	private int getInternalBufferSize(int samplingSpeed, boolean isMono, boolean is16Bit) {
-		int minBuffer = 100 + AudioRecord.getMinBufferSize(samplingSpeed, 
-				isMono ? AudioFormat.CHANNEL_IN_MONO : AudioFormat.CHANNEL_IN_STEREO, 
-				is16Bit ? AudioFormat.ENCODING_PCM_16BIT : AudioFormat.ENCODING_PCM_8BIT);
-		int size = minBuffer < 9192 ? 9192 : minBuffer;
-		if (size%2 == 1) {
-			Log.d(TAG,"Calculated Internal Buffer is odd, incrementing");
-			size++;
-		}
-		return size;
-	}
-	
-	private void setInternalBufferSize(int internalBufferSize) {
-		mInternalBufferSize = internalBufferSize;
-	}
-	
-
-	private void setSamplingSpeed(int SamplingSpeed) {
-		mSamplingSpeed = SamplingSpeed;
-	}
-
-	private void setExternalBufferSize(int externalBufferSize) {
-		mExternalBufferSize = externalBufferSize;
-	}
-	
-	private void setAudioSource(int AudioSource) {
-		mAudioSource = AudioSource;
-	}
-
-	private void setChannelConfig(boolean isMono) {
-		mIsMonoFormat = isMono;
-		mChannelConfig = isMono ? AudioFormat.CHANNEL_IN_MONO : AudioFormat.CHANNEL_IN_STEREO;
-	}
-
-	private void setAudioDataFormat(boolean is16Bit) {
-		mIs16BitFormat = is16Bit;
-		mAudioDataFormat = is16Bit ? AudioFormat.ENCODING_PCM_16BIT : AudioFormat.ENCODING_PCM_8BIT;
-	}
-	
-	public void setContext(Context c) {
-		mContext = c;
-	}
-	
-	public void setDBDataUpload(boolean enabled) {
-		dDBDataUpload = enabled;
-	}
-	
-	public void setDBLoggedIn(boolean loggedIn) {
-		dDBLoggedIn = loggedIn;
-		if (loggedIn) {
-			mDBApi = DropboxHelper.getDBSession(mContext);
-		}
-		else {
-			mDBApi = null;
-		}
-	}
-	
-	public boolean isDBDataUploadEnabled() {
-		return dDBDataUpload;
-	}
-	
-	public boolean isDBLoggedIn() {
-		return dDBLoggedIn;
+		mIntervalFreqData = getFreqData(getRawAudioArray());
 	}
 
 	public boolean isGraphEveryCycle() {
 		return dGraphEveryCycle;
 	}
 	
-	//is the actual AudioRecord recorder paused
-	public boolean isRecorderRunning() {
-		if (mRecorder.getRecordingState() == AudioRecord.RECORDSTATE_RECORDING) {
-			return true;
-		}
-		else {
-			return false;
-		}
-	}
 
 	//are the two threads truly paused, and therefore a full cycle of analysis done
 	public boolean isThreadingPaused() {
@@ -530,18 +384,10 @@ other random TODO's:
 		return false;
 	}
 
-	public boolean isReaderPaused() {
+	public boolean isReaderThreadPaused() {
 		if (mReaderRunnable.isPaused()) {
 			return true;
 		}
 		return false;
 	}
-
-	public void logInternalBufferCapacity() {
-		Log.i(TAG,"Internal Buffer size: " +  mInternalBufferSize + "\n");
-		int storageTime = (int)(1000.0*mInternalBufferSize/((float) (mIs16BitFormat ? 2 : 1) * mSamplingSpeed));
-		Log.i(TAG, "This will hold " + storageTime + " ms\n");
-	}
-	
-	
 }
