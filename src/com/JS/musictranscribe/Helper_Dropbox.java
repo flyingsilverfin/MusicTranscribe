@@ -93,6 +93,47 @@ public class Helper_Dropbox {
     	return response.rev;
     }
     
+    //for arrays of data arrays to be written to same file!
+    public static String putFile(String fileName, double[][] values, DropboxAPI<AndroidAuthSession> mDBApi) {
+    	Entry response;
+    	try {
+        	File resultFile = new File(fileName);
+    		if (!resultFile.exists()) {
+				resultFile.createNewFile();
+			} else {
+				Log.d(TAG, "file exists"); //print to get around Logging inabilities
+				
+			}
+    		
+    	    BufferedWriter writer = new BufferedWriter(new FileWriter(resultFile));
+    	    
+    	    for (int i = 0; i < values.length; i++) {
+    	    	for (int j = 0; j < values[i].length; j++) {
+	    	    	writer.write(String.valueOf(values[i][j]));
+	    	    	writer.write("\n");
+    	    	}
+    	    	writer.write("\n");
+    	    }
+    	    
+    	    writer.flush();
+    	    writer.close();
+    	        	    
+    		FileInputStream fis = new FileInputStream(resultFile);
+    		response = mDBApi.putFile(fileName, fis, resultFile.length(), null, null);
+    	
+    	} catch (IOException e) {
+    		System.out.println("Something failed before the actual Dropbox API call");
+    		System.out.println(e.toString());
+    		return "failed";
+    	} catch (DropboxException e) {
+    		System.out.println("Dropox.putFile() failed");
+    		return "failed";
+    	}
+    	
+    	return response.rev;
+    }
+    
+    
     public static void storeKeys(String key, String secret, Context context) {
         // Save the access key for later
         SharedPreferences prefs = context.getSharedPreferences(ACCOUNT_PREFS_NAME, 0);

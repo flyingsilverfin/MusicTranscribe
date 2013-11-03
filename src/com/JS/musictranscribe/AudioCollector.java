@@ -56,7 +56,7 @@ public class AudioCollector extends Audio {
 	}
 	
 	
-	public void writeSamples(double[][] sampleArrays, String fileNameStart) {
+	public void writeSamples(double[][] sampleArrays, String fileName) {
 		/*
 		 * I have to do it this rather unwieldly way because it's not possibly to do network actions on main thread
 		 * also have to do the weird passing around because I can't just define an anonymous inner class within this scope
@@ -64,13 +64,11 @@ public class AudioCollector extends Audio {
 		 */
 		class r implements Runnable{
 			double[][] innerSampleArrays;
-			String innerFileNameStart;
+			String innerFileName;
 
 			public void run() {
 				if(isDBLoggedIn() && isDBDataUploadEnabled()){
-					for (int i = 0; i < innerSampleArrays.length; i++) {
-						Helper_Dropbox.putFile("/sdcard/"+innerFileNameStart+Integer.toString(i+1)+".txt", innerSampleArrays[i], mDBApi);
-					}
+					Helper_Dropbox.putFile("/sdcard/"+innerFileName+".txt", innerSampleArrays, mDBApi);
 				}
 				else {
 					Log.e(TAG,"DB not logged in or disabled, Logged in: " + 
@@ -78,14 +76,14 @@ public class AudioCollector extends Audio {
 				}
 			}
 			
-			public r(double[][] sampleArrays, String fileNameStart) {
+			public r(double[][] sampleArrays, String fileName) {
 				innerSampleArrays = sampleArrays;
-				innerFileNameStart = fileNameStart;
+				innerFileName = fileName;
 			}
 			
 		}
 		
-		r uploadRunnable = new r(sampleArrays, fileNameStart);
+		r uploadRunnable = new r(sampleArrays, fileName);
 		new Thread(uploadRunnable).start();
 	}
 	
