@@ -16,7 +16,7 @@ import com.dropbox.client2.android.AndroidAuthSession;
  * however it is usable on its own!
  */
 
-public abstract class Audio {
+public class Audio {
 
 	//for log
 	private static final String TAG = "Audio";
