@@ -23,6 +23,7 @@ public class MainActivity extends Activity {
 	private Button mGotoDatacollectButton;
 	private Button mLibraryButton;
 	private Button mDropboxLoginButton;
+	private Button mRandomMatrixRREFButton;
 	
 	//Dropbox
 	private DropboxAPI<AndroidAuthSession> mDBApi; 
@@ -93,6 +94,43 @@ public class MainActivity extends Activity {
 			}
 		});
 		
+		mRandomMatrixRREFButton = (Button) findViewById(R.id.random_matrix_button);
+		mRandomMatrixRREFButton.setOnClickListener(new View.OnClickListener() {
+			
+			public void onClick(View v) {
+				
+				
+				/* Matrix multiplication test:
+				
+				Log.i(TAG,"Making a new matrix");
+				Matrix matrix = new Matrix(3,3);
+				matrix.fillRandomly();
+				
+				matrix.printMatrix();
+				System.out.println();
+				
+				Log.i(TAG,"second new matrix");
+				Matrix matrix2 = new Matrix(1,3);
+				matrix2.fillRandomly();
+				
+				matrix2.printMatrix();
+				System.out.println();
+				
+				matrix2 = matrix.multOnRightOf(matrix2);
+				
+				matrix2.printMatrix();
+				
+				*/
+
+				//RREF test:
+				Matrix matrix = new Matrix(100,100);
+				matrix.fillRandomly();
+				
+			 	long t = System.nanoTime();
+			 	matrix.RREF();
+				Log.i(TAG, "RREF took: " + Long.toString((System.nanoTime()-t)/1000));				
+			}
+		});
 	}
 	
 
@@ -132,6 +170,9 @@ public class MainActivity extends Activity {
 	            }
 	        }
         }
+        
+        
+        
         
     }
 	
