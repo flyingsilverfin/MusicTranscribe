@@ -1,6 +1,8 @@
 package com.JS.musictranscribe;
 
 
+import java.util.ArrayList;
+
 import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
@@ -127,8 +129,9 @@ public class MainActivity extends Activity {
 				matrix.fillRandomly();
 				
 			 	long t = System.nanoTime();
-			 	matrix.RREF();
-				Log.i(TAG, "RREF took: " + Long.toString((System.nanoTime()-t)/1000));				
+			 	ArrayList<Double> record = matrix.RREF();
+				Log.i(TAG, "RREF took: " + Long.toString((System.nanoTime()-t)/1000));	
+				Log.i(TAG, "Record length is: " + record.size());
 			}
 		});
 	}

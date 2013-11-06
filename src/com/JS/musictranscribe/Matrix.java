@@ -1,5 +1,6 @@
 package com.JS.musictranscribe;
 
+import java.util.ArrayList;
 import java.util.Random;
 
 import android.util.Log;
@@ -34,45 +35,48 @@ public class Matrix {
 	
 	//----Functionality----
 	
-	public int REF() {
+	public ArrayList<Double> REF() {
+		
+		ArrayList<Double> record = new ArrayList<Double>();
+		
 		int col = 0;
 		int shift = 0;
 		for (int j = 0; j < mHeight; j++) {
 			col = j + shift; //to check columns, starting at j'th one
 			if (col == mWidth-1) { //reached end of matrix
-				System.out.println();
-				reduceRow(j,col);
+				reduceRow(j, col, record);
 				setAllBelowToZero(j);
 				break;
 			}
 			int maxColIndex = findAbsMaxIndexInCol(col, j);
-			//System.out.println("Max in col " + col + " is in row " + maxColIndex);
 			while (maxColIndex == j && mMatrix[col][maxColIndex] == 0) { //if this is a column of 0's (returned starting index and it's a 0)
 					col++;
 					shift++;
 					maxColIndex = findAbsMaxIndexInCol(col, j); //returns j if j (starting index) is the largest
 			}
 			if (j != maxColIndex) { //if the current row is not the one with the max (in abs values)
-				//System.out.println("Swapping rows: " + j + " and " + maxColIndex);
-				swapRows(j, maxColIndex);
+				swapRows(j, maxColIndex, record);
 			}
-			reduceRow(j, col);
+			reduceRow(j, col, record);
 
-			reduceRowsBelow(j, col);
-			//printMatrix();
+			reduceRowsBelow(j, col, record);
 
 		}
-		return col; //return position of the last column worked on (might not be last one)
+		record.add(0, (double) col);
+		return record; //return position of the last column worked on (might not be last one)
 	}
 	
 	
-	public void RREF() {
-		int startingCol = REF();
+	public ArrayList<Double> RREF() {
+		ArrayList<Double> record = REF();
+		int startingCol = record.get(0).intValue(); //get the starting col that's been saved
+		record.remove(0);							//remove the first index to get purely the record
 		int startingRow = findLastNonzeroIndex(startingCol);
 		for (int j = startingRow; j >= 0; j--) {
 			startingCol = findFirstNonzeroIndexInRow(j);
-			reduceRowsAbove(j,startingCol);
+			reduceRowsAbove(j,startingCol, record);
 		}
+		return record;
 	}
 	
 	
@@ -128,6 +132,77 @@ public class Matrix {
 		return result;
 	}
 	
+	
+	/*
+	 * Must be coming from a matrix RREF or REF with the same height, otherwise will not work!
+	 */
+	public void modifyByRecord(ArrayList<Double> record) {
+		
+		record.remove(record.size()-1); //remove last element since there's nothing that follows, its an empty command
+		
+		int recordLen = record.size();
+		int counter = 0;
+		
+		double command;
+		double prevCommand = -999;
+		
+		boolean goingUpward = false;
+		
+		while (counter < recordLen) {
+			command = record.get(counter);
+
+			if (command == prevCommand) { //there will be a command with no parameters (last one), immediately followed by same command (same row)
+				goingUpward = true;
+			}
+			if (!goingUpward) {
+				if (command == -2.0) {
+					swapRows(record.get(counter+1).intValue(), record.get(counter+2).intValue());
+					counter += 3;
+				}
+				
+				else if (command == -1.0) {
+					multRowInPlace(record.get(counter+1).intValue(), record.get(counter+2));
+					counter += 3;
+				}
+				
+				else {
+					int opRow = record.get(counter).intValue();
+					int c = 1; //counter for counter :)
+					for (int j = opRow + 1; j < mHeight; j++) {
+						
+						addRowsInPlace(j, multRow(opRow, record.get(counter+c)));
+						c++;
+					}
+					counter += c; // (mHeight - opRow );
+				}
+			}
+			else { //if we're going upward
+				if (command == -2.0) {
+					swapRows(record.get(counter+1).intValue(), record.get(counter+2).intValue());
+					counter += 3;
+				}
+				
+				else if (command == -1.0) {
+					multRowInPlace(record.get(counter+1).intValue(), record.get(counter+2));
+					counter += 3;
+				}
+				
+				else {
+					int opRow = record.get(counter).intValue();
+					int c = 1; //counter for counter :)
+					for (int j = opRow-1; j >= 0; j--) {
+						addRowsInPlace(j, multRow(opRow, record.get(counter+c)));
+						c++;
+					}
+					counter += c; // (mHeight - opRow ); //same thing
+				}
+			}
+			prevCommand = command;
+			
+		}
+		
+	}
+	
 	//-----Support functions-----
 	
 	private void reduceRowsBelow(int m, int colToReduceBy) {
@@ -138,6 +213,28 @@ public class Matrix {
 		for (int j = m+1; j < mHeight; j++) {
 			multRowInPlace(j, -1*val/mMatrix[j][loc]); //divide to 1, multiply with val, then negate
 			addRowsInPlace(j, m); //add the upper row to the lower one in place to cancel out that column
+		}
+	}
+	
+	/*
+	 * Overloaded for record keeping
+	 */
+	private void reduceRowsBelow(int m, int colToReduceBy, ArrayList<Double> record) {
+		//still have to implement the record usage
+		
+	//	if (m == (mHeight - 1)) { //if its the last row, then return now. Not doing this causes an error in the addToRecord 
+																			//because there are no parameters following it
+	//		return;
+	//	}
+		addToRecord(record, 0, m, 000); //last param is just a blank
+		
+		//int loc = findFirstNonZeroIndexInRow(m); //unreliable!
+		int loc = colToReduceBy;
+		double val = mMatrix[m][loc];
+		for (int j = m+1; j < mHeight; j++) {
+			double factor = -1*mMatrix[j][loc]/val; //factor to multiply m by to add to j to get 0 in loc
+			addToRecord(record, 1, factor, 000); //last param is blank
+			addRowsInPlace(j, multRow(m, factor)); //add the upper row to the lower one in place to cancel out that column
 		}
 	}
 	
@@ -153,6 +250,25 @@ public class Matrix {
 		}		
 	}
 	
+	/*
+	 * overloaded for record keeping
+	 */
+	private void reduceRowsAbove(int m, int colToReduceBy, ArrayList<Double> record) {
+		int loc = colToReduceBy;
+		double val = mMatrix[m][loc];
+		addToRecord(record, 0, m, 000);
+		for (int j = m-1; j >= 0; j--) {
+			double factor = -1*mMatrix[j][loc]/val;
+			addToRecord(record, 1, factor, 000);
+			addRowsInPlace(j, multRow(m,factor));	//uses overloaded version
+																	//do it this way so if that positions value is 0, no div by 0 occurs
+																	//also doesn't change other coefficients, multiplies
+																	//lowest row and gets a copy, then adds that to the above row
+			
+		}		
+	}
+	
+	
 	private void reduceRow(int m, int indexToReduceBy) {
 		double factor = 1/mMatrix[m][indexToReduceBy];
 		for (int i = 0; i < mWidth; i++) {
@@ -163,6 +279,20 @@ public class Matrix {
 		
 		}
 	}
+	
+	//overloaded for record keeping
+	private void reduceRow(int m, int indexToReduceBy, ArrayList<Double> record) {
+		double factor = 1/mMatrix[m][indexToReduceBy];
+		addToRecord(record, -1, m, factor);
+		for (int i = 0; i < mWidth; i++) {
+			mMatrix[m][i] *= factor;
+			if (Math.abs(mMatrix[m][i]) < tolerance) {
+				mMatrix[m][i] = 0;
+			}
+		
+		}
+	}
+	
 	
 	private void setAllBelowToZero(int m) {
 		for (int j = m+1; j < mHeight; j++) {
@@ -201,6 +331,39 @@ public class Matrix {
 	}
 	
 	
+	/*
+	 * Codes:
+	 * Multiply a single row: 	-1, followed by row and value
+	 * Swap rows:				-2, followed by row1 and row 2
+	 * No code: 				first value is the row r, followed by (matrixHeight - 1 - r)
+	 * 								 values of factors to multiply r by and add to following rows
+	 */
+	
+	private void addToRecord(ArrayList<Double> record, int opCode, double param1, double param2) {
+		
+		if (opCode == -2) { //code for SWAPping rows is -2
+			record.add(-2.0);
+			record.add(param1);	//row1 to swap
+			record.add(param2);	//row2 to swap
+		}
+		
+		else if (opCode == -1) { 	//code for MULTiplying a single row is -1
+			record.add(-1.0);
+			record.add(param1);	//the row
+			record.add(param2);	//the factor for that row
+		}
+	
+		//only requires 1 parameter, the current row
+		else if (opCode == 0) { //code to initialize new row multiplication & addition
+			record.add(param1); //record the row we're starting on
+		}
+		
+		//only requires 1 parameter, the factor of the 'current' row to use
+		else if (opCode == 1) { //continue the previous row mult & additions, only requires 1 param
+			record.add(param1);
+		}
+		
+	}
 	
 	//-----Row Modification functions-----
 	
@@ -262,6 +425,16 @@ public class Matrix {
 		mMatrix[row2] = tmp;
 	}
 	
+	/*
+	 * overloaded for record keeping
+	 */
+	public void swapRows(int row1, int row2, ArrayList<Double> record) {
+		addToRecord(record, -2, row1, row2);
+		double[] tmp = mMatrix[row1];
+		mMatrix[row1] = mMatrix[row2];
+		mMatrix[row2] = tmp;
+	}
+	
 	
 	//-----Getters and Setters-----
 	
@@ -287,7 +460,7 @@ public class Matrix {
 	public void writeCol(int n, double[] col){
 		int h = mHeight;
 		if (col.length != mHeight) {
-			System.out.println("Given column's height does not equal matrix's height, using minimum");
+			Log.e(TAG, "Given column's height does not equal matrix's height, using minimum");
 			h = Math.min(mHeight, col.length);
 		}
 		for (int j = 0; j < h; j++) {
@@ -300,7 +473,7 @@ public class Matrix {
 	 */
 	public double[] getCol(int n) {
 		if (n<0) {
-			n = Math.abs((mHeight + n))%mHeight;
+			n = Math.abs((mWidth + n))%mWidth;
 		}
 		else {
 			n = n%mHeight;
@@ -320,7 +493,7 @@ public class Matrix {
 		int w = mWidth;
 
 		if (row.length != mWidth) {
-			System.out.println("Given row's length does not match matrix rows' lengths, using minimum");
+			Log.e(TAG, "Given row's length does not match matrix rows' lengths, using minimum");
 			w = Math.min(mWidth, row.length);
 		}
 		for (int i = 0; i < w; i++) {
@@ -376,7 +549,7 @@ public class Matrix {
 	/*
 	 * get a copy of the matrix, as a Matrix object
 	 */
-	public Matrix getMatrixCopy() {
+	public Matrix getCopy() {
 		Matrix copy = new Matrix(mHeight, mWidth);
 		for (int j = 0; j < mHeight; j++) {
 			copy.writeRow(j, getRow(j));
