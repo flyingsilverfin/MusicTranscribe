@@ -16,7 +16,6 @@ import com.dropbox.client2.android.AndroidAuthSession;
 import com.dropbox.client2.session.TokenPair;
 
 
-
 public class MainActivity extends Activity {
 
 	private static String TAG = "MainActivity";
@@ -24,7 +23,7 @@ public class MainActivity extends Activity {
 	private Button mGotoRecordingButton;
 	private Button mGotoDatacollectButton;
 	private Button mLibraryButton;
-//	private Button mDropboxLoginButton;
+	private Button mDropboxLoginButton;
 	private Button mRandomMatrixRREFButton;
 	
 	//Dropbox
@@ -71,7 +70,7 @@ public class MainActivity extends Activity {
 			}
 		});
 		
-/*		mDropboxLoginButton = (Button) findViewById(R.id.dropbox_login_button);
+		mDropboxLoginButton = (Button) findViewById(R.id.dropbox_login_button);
 		mDropboxLoginButton.setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View v) {
@@ -96,7 +95,7 @@ public class MainActivity extends Activity {
 			}
 		});
 
-*/
+
 		
 		mRandomMatrixRREFButton = (Button) findViewById(R.id.random_matrix_button);
 		mRandomMatrixRREFButton.setOnClickListener(new View.OnClickListener() {
@@ -206,9 +205,6 @@ public class MainActivity extends Activity {
 	            }
 	        }
         }
-        
-        
-        
         
     }
 	
