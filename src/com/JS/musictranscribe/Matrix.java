@@ -115,6 +115,7 @@ public class Matrix {
 		return result;
 	}
 	
+	//this multiplication is faster than onRightOf MAYBE
 	public Matrix multOnLeftOf(Matrix m) {
 		if (m.getHeight() != mWidth) {
 			Log.e(TAG, "Dimensions do not match, trying to multiply matri of width " + mWidth + 
