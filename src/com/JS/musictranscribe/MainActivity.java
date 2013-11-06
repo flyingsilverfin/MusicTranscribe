@@ -24,7 +24,7 @@ public class MainActivity extends Activity {
 	private Button mGotoRecordingButton;
 	private Button mGotoDatacollectButton;
 	private Button mLibraryButton;
-	private Button mDropboxLoginButton;
+//	private Button mDropboxLoginButton;
 	private Button mRandomMatrixRREFButton;
 	
 	//Dropbox
@@ -71,7 +71,7 @@ public class MainActivity extends Activity {
 			}
 		});
 		
-		mDropboxLoginButton = (Button) findViewById(R.id.dropbox_login_button);
+/*		mDropboxLoginButton = (Button) findViewById(R.id.dropbox_login_button);
 		mDropboxLoginButton.setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View v) {
@@ -95,6 +95,8 @@ public class MainActivity extends Activity {
 				}
 			}
 		});
+
+*/
 		
 		mRandomMatrixRREFButton = (Button) findViewById(R.id.random_matrix_button);
 		mRandomMatrixRREFButton.setOnClickListener(new View.OnClickListener() {
@@ -124,6 +126,7 @@ public class MainActivity extends Activity {
 				
 				*/
 
+				/*
 				//RREF test:
 				Matrix matrix = new Matrix(100,100);
 				matrix.fillRandomly();
@@ -132,6 +135,36 @@ public class MainActivity extends Activity {
 			 	ArrayList<Double> record = matrix.RREF();
 				Log.i(TAG, "RREF took: " + Long.toString((System.nanoTime()-t)/1000));	
 				Log.i(TAG, "Record length is: " + record.size());
+				
+				*/
+				Log.i(TAG, "Generating and filling matricies");
+				Matrix matrix = new Matrix(88, 2024);
+				matrix.fillRandomly();
+				
+				
+				Matrix solMatrix = new Matrix(2024, 1);
+				solMatrix.fillRandomly();
+				Log.i(TAG,"RREF'ing");
+				ArrayList<Double> record = matrix.RREF();
+
+				
+				long t = System.nanoTime();
+				
+				solMatrix = matrix.multOnLeftOf(solMatrix);
+				
+				long t2 = System.nanoTime();
+				
+				solMatrix.modifyByRecord(record);
+				
+				Log.i(TAG,"Length of record: " + record.size());
+				Log.i(TAG,"Multiplication: " + ((t2-t)/1000) + "us");
+				Log.i(TAG,"modification by record: " + (System.nanoTime() - t2)/1000 + "us");
+				
+				
+				
+				
+				
+				
 			}
 		});
 	}

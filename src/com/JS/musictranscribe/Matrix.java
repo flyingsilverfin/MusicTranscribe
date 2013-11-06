@@ -504,7 +504,7 @@ public class Matrix {
 	/*
 	 * accept negatives to count from the end too
 	 */
-	public double[] getRow(int m) {
+	public double[] getRowCopy(int m) {
 		if (m<0) {
 			m = Math.abs((mHeight + m))%mHeight;
 		}
@@ -516,6 +516,16 @@ public class Matrix {
 			row[i] = mMatrix[m][i];
 		}
 		return row;
+	}
+	
+	public double[] getRow(int m) {
+		if (m<0) {
+			m = Math.abs((mHeight + m))%mHeight;
+		}
+		else {
+			m = m%mHeight;
+		}
+		return mMatrix[m];
 	}
 	
 	public void writeElem(int m, int n, double val) {
@@ -552,7 +562,7 @@ public class Matrix {
 	public Matrix getCopy() {
 		Matrix copy = new Matrix(mHeight, mWidth);
 		for (int j = 0; j < mHeight; j++) {
-			copy.writeRow(j, getRow(j));
+			copy.writeRow(j, getRowCopy(j));
 		}
 		return copy;
 	}
@@ -564,7 +574,7 @@ public class Matrix {
 	
 	public int getWidth() {
 		return mWidth;
-	}
+	}	
 	
 	
 	//-----Matrix printing-----
