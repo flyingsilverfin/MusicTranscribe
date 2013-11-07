@@ -136,12 +136,14 @@ public class MainActivity extends Activity {
 				Log.i(TAG, "Record length is: " + record.size());
 				
 				*/
-				Log.i(TAG, "Generating and filling matricies");
+				Log.i(TAG, "Generating matrix 1");
 				Matrix matrix = new Matrix(88, 2024);
+				Log.i(TAG,"Filling matrix 1");
 				matrix.fillRandomly();
 				
-				
+				Log.i(TAG,"Generating matrix 2");
 				Matrix solMatrix = new Matrix(2024, 1);
+				Log.i(TAG,"Filling matrix 2");
 				solMatrix.fillRandomly();
 				Log.i(TAG,"RREF'ing");
 				ArrayList<Double> record = matrix.RREF();
@@ -149,9 +151,11 @@ public class MainActivity extends Activity {
 				
 				long t = System.nanoTime();
 				
+				System.out.println("Multiplying");
 				solMatrix = matrix.multOnLeftOf(solMatrix);
 				
 				long t2 = System.nanoTime();
+				System.out.println("modifying");
 				
 				solMatrix.modifyByRecord(record);
 				

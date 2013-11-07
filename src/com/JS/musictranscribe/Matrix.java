@@ -99,34 +99,57 @@ public class Matrix {
 	 */
 	public Matrix multOnRightOf(Matrix m) {
 		if (m.getWidth() != mHeight) {
-			Log.e(TAG, "Dimensions do not match, trying to multiply matrix of width " + m.getWidth() + 
+			System.out.println("Dimensions do not match, trying to multiply matrix of width " + m.getWidth() + 
 					"by one of height " + mHeight + ". Aborting!");
 			return null;
 		}
 		
 		Matrix result = new Matrix(m.getHeight(), mWidth);
 		
+		int val;
+		
 		for (int j = 0; j < m.getHeight(); j++) {
 			for (int i = 0; i < mWidth; i++) {
-				result.writeElem(j, i, dotProd(m.getRow(j), getCol(i)));
+				
+				val = 0;
+				
+				for (int k = 0; k < mHeight; k++) {
+					val += mMatrix[k][i] * m.getElem(j, k);
+				}
+				
+				result.writeElem(j, i, val);
+
+				//this causes lot of objects to be made, lots of GC -> really slow on android:
+				//result.writeElem(j, i, dotProd(m.getRow(j), getCol(i))); 
+				
 			}
 		}
 		
 		return result;
 	}
 	
-	//this multiplication is faster than onRightOf MAYBE
+	
+	//this is a faster multiplication than onRightOf
 	public Matrix multOnLeftOf(Matrix m) {
 		if (m.getHeight() != mWidth) {
-			Log.e(TAG, "Dimensions do not match, trying to multiply matri of width " + mWidth + 
+			System.out.println("Dimensions do not match, trying to multiply matri of width " + mWidth + 
 					"by one of height " + m.getHeight() + ". Aborting!");
 		}
 		
 		Matrix result = new Matrix(mHeight, m.getWidth());
 		
+		int val;
+		
 		for (int j = 0; j < mHeight; j++) {
 			for (int i = 0; i < m.getWidth(); i++) {
-				result.writeElem(j, i, dotProd(getRow(j), m.getCol(i)));
+				
+				val = 0;
+				
+				for (int k = 0; k < mWidth; k++) {
+					val += mMatrix[j][k] * m.getElem(k, i);
+				}
+				
+				result.writeElem(j, i, val);
 			}
 		}
 		
@@ -155,44 +178,45 @@ public class Matrix {
 			if (command == prevCommand) { //there will be a command with no parameters (last one), immediately followed by same command (same row)
 				goingUpward = true;
 			}
-			if (!goingUpward) {
-				if (command == -2.0) {
-					swapRows(record.get(counter+1).intValue(), record.get(counter+2).intValue());
-					counter += 3;
-				}
+			
+			if (command == -2.0) {
+				swapRows(record.get(counter+1).intValue(), record.get(counter+2).intValue());
+				counter += 3;
+			}
+			
+			else if (command == -1.0) {
+				multRowInPlace(record.get(counter+1).intValue(), record.get(counter+2));
+				counter += 3;
+			}
+			
+			else {
 				
-				else if (command == -1.0) {
-					multRowInPlace(record.get(counter+1).intValue(), record.get(counter+2));
-					counter += 3;
-				}
-				
-				else {
+				if (!goingUpward) {
 					int opRow = record.get(counter).intValue();
 					int c = 1; //counter for counter :)
 					for (int j = opRow + 1; j < mHeight; j++) {
 						
-						addRowsInPlace(j, multRow(opRow, record.get(counter+c)));
+						for (int k = 0; k < mWidth; k++) {
+							mMatrix[j][k] += mMatrix[opRow][k] * record.get(counter+c);
+						}
+						
+						//following is less efficient than above
+						//addRowsInPlace(j, multRow(opRow, record.get(counter+c))); 
 						c++;
 					}
 					counter += c; // (mHeight - opRow );
 				}
-			}
-			else { //if we're going upward
-				if (command == -2.0) {
-					swapRows(record.get(counter+1).intValue(), record.get(counter+2).intValue());
-					counter += 3;
-				}
-				
-				else if (command == -1.0) {
-					multRowInPlace(record.get(counter+1).intValue(), record.get(counter+2));
-					counter += 3;
-				}
-				
 				else {
 					int opRow = record.get(counter).intValue();
 					int c = 1; //counter for counter :)
 					for (int j = opRow-1; j >= 0; j--) {
-						addRowsInPlace(j, multRow(opRow, record.get(counter+c)));
+						
+						for (int k = 0; k < mWidth; k++) {
+							mMatrix[j][k] += mMatrix[opRow][k] * record.get(counter+c);
+						}
+						
+						//same reasoning as above block
+						//addRowsInPlace(j, multRow(opRow, record.get(counter+c)));
 						c++;
 					}
 					counter += c; // (mHeight - opRow ); //same thing
@@ -235,7 +259,12 @@ public class Matrix {
 		for (int j = m+1; j < mHeight; j++) {
 			double factor = -1*mMatrix[j][loc]/val; //factor to multiply m by to add to j to get 0 in loc
 			addToRecord(record, 1, factor, 000); //last param is blank
-			addRowsInPlace(j, multRow(m, factor)); //add the upper row to the lower one in place to cancel out that column
+			
+			for (int k = 0; k < mWidth; k++) {		//this loops does the sum of the rows
+				mMatrix[j][k] += mMatrix[m][k]*factor;
+			}
+			
+			//addRowsInPlace(j, multRow(m, factor)); //this way of doing it creates a lot of object reference which causes more GC
 		}
 	}
 	
@@ -243,7 +272,7 @@ public class Matrix {
 		int loc = colToReduceBy;
 		double val = mMatrix[m][loc];
 		for (int j = m-1; j >= 0; j--) {
-			addRowsInPlace(j,multRow(m,-1*mMatrix[j][loc]/val));	//uses overloaded version
+			addRowsInPlace(j, multRow(m,-1*mMatrix[j][loc]/val));	//uses overloaded version
 																	//do it this way so if that positions value is 0, no div by 0 occurs
 																	//also doesn't change other coefficients, multiplies
 																	//lowest row and gets a copy, then adds that to the above row
@@ -261,7 +290,13 @@ public class Matrix {
 		for (int j = m-1; j >= 0; j--) {
 			double factor = -1*mMatrix[j][loc]/val;
 			addToRecord(record, 1, factor, 000);
-			addRowsInPlace(j, multRow(m,factor));	//uses overloaded version
+			
+			for (int k = 0; k < mWidth; k++) {		//sums up the two rows, equivalent to commented version below
+				mMatrix[j][k] += mMatrix[m][k]* factor;
+			}
+			
+			//this is less efficient:
+			//addRowsInPlace(j, multRow(m,factor));	//uses overloaded version
 																	//do it this way so if that positions value is 0, no div by 0 occurs
 																	//also doesn't change other coefficients, multiplies
 																	//lowest row and gets a copy, then adds that to the above row
