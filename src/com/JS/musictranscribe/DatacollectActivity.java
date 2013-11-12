@@ -35,6 +35,9 @@ public class DatacollectActivity extends Activity {
 	private EditText mTimedRecordingEditText;
 	private Button mStartTimedRecordingButton;
 	
+	private EditText mNoteNumEditText;
+	private Button mGetNoteDataButton;
+	
 	
 	private AudioCollector mAudioCollector;
 	
@@ -81,6 +84,20 @@ public class DatacollectActivity extends Activity {
 				
 			}
 		});
+		
+		mNoteNumEditText = (EditText) findViewById(R.id.note_num_edittext);
+		mGetNoteDataButton = (Button) findViewById(R.id.get_note_data_button);
+		mGetNoteDataButton.setOnClickListener(new View.OnClickListener() {
+			
+			@Override
+			public void onClick(View v) {
+				int noteNum = Integer.parseInt(mNoteNumEditText.getText().toString());
+				
+			}
+		});
+		
+		
+		
 		
 		mAudioCollector = new AudioCollector(AudioSource.MIC, Helper.SAMPLING_SPEED, 
 				true, true, Helper.EXTERNAL_BUFFER_SIZE, this);

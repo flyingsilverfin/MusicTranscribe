@@ -12,21 +12,45 @@ public class AudioCollector extends Audio {
 	public AudioCollector(int audioSource, int samplingSpeed, boolean isMonoFormat, boolean is16BitFormat, int externalBufferSize, Context context) {
 		super(audioSource,samplingSpeed, isMonoFormat, is16BitFormat, externalBufferSize, context);
 		
+		
+		
+		
+		
 	}
 	
 	public double[][] getNSamples(int n) {
 		double[][] sampleArrays = new double[n][getExternalBufferSize()];
 		
-		if (!startAudioRecording()) { //if recorder failed to start then exit early
+		if (!startAudioRecording()) { //try to start recorder,
+										//if recorder failed to start then 
+										//exit early. Function also logs if failed
 			return null;
 		}
 		
+		//try { Thread.sleep(171); } catch (InterruptedException e) {}
+		
+		
+		long tmpT;
+		
+		long a = System.nanoTime();
+		recordAudio();
+		Log.i(TAG, "CLeaning read took "+  (System.nanoTime() - a)/1000 + "us");
+		long t = System.nanoTime();
+
 		for (int i = 0; i < n; i++) {
+			
+			tmpT = System.nanoTime();
+			
 			recordAudio(); //updates mRawAudioData, also accessible through getRawAudioArray()
-			for (int j = 0; j < getExternalBufferSize(); j++) {
-				sampleArrays[i][j] = mRawAudioData[j];
-			}
+			//for (int j = 0; j < getExternalBufferSize(); j++) {
+			//	sampleArrays[i][j] = mRawAudioData[j];
+			//}
+			Log.i(TAG,"Updating audio data buffer and saving it to another double array took \n" + (System.nanoTime()-tmpT)/1000 + " us");
+			
 		}
+		
+		Log.i(TAG,"Total time for " + n + " recording is " + (System.nanoTime()-t)/1000 + " us");
+		
 		
 		stopAudioRecording();
 		

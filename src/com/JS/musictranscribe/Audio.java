@@ -51,15 +51,16 @@ public class Audio {
 	//-----constructor-----
 	public Audio(int audioSource, int samplingSpeed, boolean isMonoFormat, boolean is16BitFormat, int externalBufferSize, Context context) {
 		
-		//calculates and sets a good size for the internal AudioRecord buffer
-		setInternalBufferSize(calcInternalBufferSize(samplingSpeed,
-			isMonoFormat, is16BitFormat));
-
 		setSamplingSpeed(samplingSpeed);
 		setExternalBufferSize(externalBufferSize);
 		setAudioSource(audioSource);
 		setChannelConfig(isMonoFormat);
 		setAudioDataFormat(is16BitFormat);
+		
+		//calculates and sets a good size for the internal AudioRecord buffer
+		setInternalBufferSize(calcInternalBufferSize(samplingSpeed,
+			isMonoFormat, is16BitFormat));
+
 		
 		setContext(context);
 	
@@ -134,8 +135,6 @@ public class Audio {
 			size++;
 		}
 		
-		//log size of internal buffer size
-		int storageTime = (int)(1000.0*mInternalBufferSize/((float) (mIs16BitFormat ? 2 : 1) * mSamplingSpeed));
 		return size;
 	}
 	
