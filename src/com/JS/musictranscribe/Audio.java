@@ -251,7 +251,10 @@ public class Audio {
 		}
 	}
 
-		
+	public boolean isDBLoggedIn() {
+		return dDBLoggedIn;
+	}
+	
 	//this is to enable and disable upload even if logged in
 	//might not want to always upload when logged in! (speed, convenience, testing, etc)
 	public  void setDBDataUpload(boolean enabled) {
@@ -261,10 +264,6 @@ public class Audio {
 		
 	public boolean isDBDataUploadEnabled() {
 		return dDBDataUpload;
-	}
-	
-	public boolean isDBLoggedIn() {
-		return dDBLoggedIn;
 	}
 	
 }

@@ -64,7 +64,7 @@
             android:id="@+id/note_num_edittext"
             android:layout_width="100dp"
             android:layout_height="wrap_content"
-            android:hint="#"
+            android:text="@string/one"
             android:inputType="number" />
 
         <Button
@@ -72,6 +72,42 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/get_note_data_button_text" />
+        
+        <TextView 
+            android:id="@+id/status_textview"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text=""
+            />
     </LinearLayout>
+    
+    <LinearLayout
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:gravity="center"
+        android:orientation="horizontal">
+    	
+    	<Button 
+    	    android:id="@+id/start_new_map_button"
+   	        android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/start_new_map_button_text" />
+    	
+   		<EditText 
+    	    android:id="@+id/new_note_map_name_edittext"
+    	    android:layout_width="150dp"
+    	    android:layout_height="wrap_content"
+    	    android:hint="@string/map_file_name_edittext_hint" />
+    	
+    	<Button
+     	    android:id="@+id/save_new_map_button"
+   	        android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/save_new_map_button_text" />
+    	
+   	</LinearLayout>
+
+    	
+    	
 
 </LinearLayout>

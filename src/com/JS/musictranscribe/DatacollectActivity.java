@@ -1,5 +1,7 @@
 package com.JS.musictranscribe;
 
+import java.util.HashMap;
+
 import android.annotation.TargetApi;
 import android.app.Activity;
 import android.media.MediaRecorder.AudioSource;
@@ -12,6 +14,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.TextView;
 
 
 
@@ -32,12 +35,20 @@ public class DatacollectActivity extends Activity {
 	//UI 
 	private EditText mNumRecordingsEditText;
 	private Button mStartNRecordingsButton;
+	
 	private EditText mTimedRecordingEditText;
 	private Button mStartTimedRecordingButton;
 	
 	private EditText mNoteNumEditText;
 	private Button mGetNoteDataButton;
+	private TextView mStatusTextView;
 	
+	
+	private Button mStartNewMapButton;
+	private HashMap<Integer, Double[]> mNoteSpectraMap;
+	
+	private EditText mNewNoteMapNameEditText;
+	private Button mSaveNewMap;
 	
 	private AudioCollector mAudioCollector;
 	
@@ -61,11 +72,11 @@ public class DatacollectActivity extends Activity {
 			@Override
 			public void onClick(View v) {
 				int num = Integer.parseInt(mNumRecordingsEditText.getText().toString());
+				disableInputs();
 				Log.i(TAG,"\tGoing to record: " + num + "times");
-				
 				double[][] result = mAudioCollector.getNSamples(num);
-				
-				mAudioCollector.writeSamples(result, num+"recordings");
+				mAudioCollector.writeSamplesToDropbox(result, num+"recordings");
+				enableInputs();
 			}
 		});
 		
@@ -76,22 +87,71 @@ public class DatacollectActivity extends Activity {
 			@Override
 			public void onClick(View v) {
 				int msecs = Integer.parseInt(mTimedRecordingEditText.getText().toString());
+				disableInputs();
 				Log.i(TAG,"\tGoing to record for: " + mTimedRecordingEditText.getText().toString() + "milliseconds");
-				
 				double[][] result = mAudioCollector.getSamplesFor(msecs*1000);
-				
-				mAudioCollector.writeSamples(result, msecs+"msRecording");
+				mAudioCollector.writeSamplesToDropbox(result, msecs+"msRecording");
+				enableInputs();
 				
 			}
 		});
 		
-		mNoteNumEditText = (EditText) findViewById(R.id.note_num_edittext);
-		mGetNoteDataButton = (Button) findViewById(R.id.get_note_data_button);
-		mGetNoteDataButton.setOnClickListener(new View.OnClickListener() {
+		
+		mStartNewMapButton = (Button) findViewById(R.id.start_new_map_button);
+		mStartNewMapButton.setOnClickListener(new View.OnClickListener() {
 			
 			@Override
 			public void onClick(View v) {
+				Log.i(TAG, "Referencing HashMap to new empty HashMap");
+				mNoteSpectraMap = new HashMap<Integer, Double[]>();
+			}
+		});
+		
+		
+		mNewNoteMapNameEditText = (EditText) findViewById(R.id.new_note_map_name_edittext);
+		mSaveNewMap = (Button) findViewById(R.id.save_new_map_button);
+		mSaveNewMap.setOnClickListener(new View.OnClickListener() {
+			
+			@Override
+			public void onClick(View v) {
+				Helper.writeNewNoteSpectraFile(getApplicationContext(), mNewNoteMapNameEditText.getText().toString(), mNoteSpectraMap);
+			}
+		});
+		
+		
+		mNoteNumEditText = (EditText) findViewById(R.id.note_num_edittext);
+		mGetNoteDataButton = (Button) findViewById(R.id.get_note_data_button);
+		mStatusTextView = (TextView) findViewById(R.id.status_textview);
+		
+		mGetNoteDataButton.setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View v) {
 				int noteNum = Integer.parseInt(mNoteNumEditText.getText().toString());
+				disableInputs();
+				if (noteNum < 1 || noteNum > 88) {	//use human counting, 1-88 allowed inclusive
+					Log.e(TAG,"noteNum is out of range");
+					mStatusTextView.setText("Note must be in range 1-88 inclusive. 1 = Bottommost note");
+					return;
+				}
+				mStatusTextView.setText("Recording...");
+				
+				double[][] samples = mAudioCollector.getSamplesFor(3000000);
+				
+				mStatusTextView.setText("Averaging samples");
+				Double[] averaged = Helper.averageArraysIntoDoubleObjects(samples);
+				
+				mStatusTextView.setText("Adding to HashMap");
+				if (mNoteSpectraMap.containsKey(Integer.valueOf(noteNum))) {
+					mStatusTextView.setText("Overwriting previous entry for this note");
+					Log.i(TAG, "Overwriting previous hashmap entry for note " + noteNum);
+					mNoteSpectraMap.remove(Integer.valueOf(noteNum));
+				}
+				
+				mNoteSpectraMap.put(Integer.valueOf(noteNum), averaged);				
+				
+				
+				mStatusTextView.setText("Finished recording and saving " + samples.length + " averaged samples in 3 seconds for note #" + noteNum);
+				enableInputs();
 				
 			}
 		});
@@ -111,6 +171,27 @@ public class DatacollectActivity extends Activity {
 		}
 	}
 
+	
+	
+	private void disableInputs() {
+		mNumRecordingsEditText.setEnabled(false);
+		mStartNRecordingsButton.setEnabled(false);
+		mTimedRecordingEditText.setEnabled(false);
+		mStartTimedRecordingButton.setEnabled(false);
+		mNoteNumEditText.setEnabled(false);
+		mGetNoteDataButton.setEnabled(false);
+	}
+	
+	private void enableInputs() {
+		mNumRecordingsEditText.setEnabled(true);
+		mStartNRecordingsButton.setEnabled(true);
+		mTimedRecordingEditText.setEnabled(true);
+		mStartTimedRecordingButton.setEnabled(true);
+		mNoteNumEditText.setEnabled(true);
+		mGetNoteDataButton.setEnabled(true);
+	}
+	
+	
 	/**
 	 * Set up the {@link android.app.ActionBar}, if the API is available.
 	 */

@@ -80,7 +80,7 @@ public class AudioCollector extends Audio {
 	}
 	
 	
-	public void writeSamples(double[][] sampleArrays, String fileName) {
+	public void writeSamplesToDropbox(double[][] sampleArrays, String fileName) {
 		/*
 		 * I have to do it this rather unwieldly way because it's not possibly to do network actions on main thread
 		 * also have to do the weird passing around because I can't just define an anonymous inner class within this scope
