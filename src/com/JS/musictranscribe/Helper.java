@@ -155,9 +155,9 @@ public class Helper {
 	}
 	
 	public static Double[] averageArraysIntoDoubleObjects(double[][] data) {
-		Double[] result = new Double[data.length];
-		printMatrix(data);
+		Double[] result = new Double[data[0].length];
 		for (int i = 0; i < data[0].length; i++) {
+			result[i] = 0.0;
 			for (int j = 0; j < data.length; j++) {
 				result[i] += data[j][i];
 			}

@@ -46,6 +46,8 @@ public class DatacollectActivity extends Activity {
 	
 	private Button mStartNewMapButton;
 	private HashMap<Integer, Double[]> mNoteSpectraMap;
+	private int mNumSamplesForThisMap;
+
 	
 	private EditText mNewNoteMapNameEditText;
 	private Button mSaveNewMap;
@@ -63,6 +65,7 @@ public class DatacollectActivity extends Activity {
 		setupActionBar();
 		
 		
+		mNoteSpectraMap = new HashMap<Integer, Double[]>();
 		
 		
 		mNumRecordingsEditText = (EditText) findViewById(R.id.num_recordings_edittext);
@@ -104,6 +107,7 @@ public class DatacollectActivity extends Activity {
 			public void onClick(View v) {
 				Log.i(TAG, "Referencing HashMap to new empty HashMap");
 				mNoteSpectraMap = new HashMap<Integer, Double[]>();
+				mNumSamplesForThisMap = -1;
 			}
 		});
 		
@@ -135,7 +139,14 @@ public class DatacollectActivity extends Activity {
 				}
 				mStatusTextView.setText("Recording...");
 				
-				double[][] samples = mAudioCollector.getSamplesFor(3000000);
+				double[][] samples;
+				if (mNumSamplesForThisMap != -1) { //if this is not the first recording for this map
+					samples = mAudioCollector.getSamplesFor(3000000);
+					mNumSamplesForThisMap = samples.length;
+				}
+				else {
+					samples = mAudioCollector.getNSamples(mNumSamplesForThisMap);
+				}
 				
 				mStatusTextView.setText("Averaging samples");
 				Double[] averaged = Helper.averageArraysIntoDoubleObjects(samples);
