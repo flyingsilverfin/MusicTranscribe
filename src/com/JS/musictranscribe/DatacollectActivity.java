@@ -47,7 +47,6 @@ public class DatacollectActivity extends Activity {
 	private Button mStartNewMapButton;
 	private HashMap<Integer, Double[]> mNoteSpectraMap;
 	private int mNumSamplesForThisMap;
-
 	
 	private EditText mNewNoteMapNameEditText;
 	private Button mSaveNewMap;
@@ -66,6 +65,7 @@ public class DatacollectActivity extends Activity {
 		
 		
 		mNoteSpectraMap = new HashMap<Integer, Double[]>();
+		mNumSamplesForThisMap = -1;
 		
 		
 		mNumRecordingsEditText = (EditText) findViewById(R.id.num_recordings_edittext);
@@ -130,39 +130,63 @@ public class DatacollectActivity extends Activity {
 		mGetNoteDataButton.setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View v) {
-				int noteNum = Integer.parseInt(mNoteNumEditText.getText().toString());
-				disableInputs();
-				if (noteNum < 1 || noteNum > 88) {	//use human counting, 1-88 allowed inclusive
-					Log.e(TAG,"noteNum is out of range");
-					mStatusTextView.setText("Note must be in range 1-88 inclusive. 1 = Bottommost note");
-					return;
-				}
-				mStatusTextView.setText("Recording...");
-				
-				double[][] samples;
-				if (mNumSamplesForThisMap != -1) { //if this is not the first recording for this map
-					samples = mAudioCollector.getSamplesFor(3000000);
-					mNumSamplesForThisMap = samples.length;
-				}
-				else {
-					samples = mAudioCollector.getNSamples(mNumSamplesForThisMap);
-				}
-				
-				mStatusTextView.setText("Averaging samples");
-				Double[] averaged = Helper.averageArraysIntoDoubleObjects(samples);
-				
-				mStatusTextView.setText("Adding to HashMap");
-				if (mNoteSpectraMap.containsKey(Integer.valueOf(noteNum))) {
-					mStatusTextView.setText("Overwriting previous entry for this note");
-					Log.i(TAG, "Overwriting previous hashmap entry for note " + noteNum);
-					mNoteSpectraMap.remove(Integer.valueOf(noteNum));
-				}
-				
-				mNoteSpectraMap.put(Integer.valueOf(noteNum), averaged);				
-				
-				
-				mStatusTextView.setText("Finished recording and saving " + samples.length + " averaged samples in 3 seconds for note #" + noteNum);
-				enableInputs();
+				Log.i(TAG,"creating new thread");
+				new Thread() {
+					public void run() {
+						final int noteNum = Integer.parseInt(mNoteNumEditText.getText().toString());
+						
+						runOnUiThread(new Runnable() {
+							@Override
+							public void run() {
+								disableInputs();
+							}
+						});
+						
+						if (noteNum < 1 || noteNum > 88) {	//use human counting, 1-88 allowed inclusive
+							Log.e(TAG,"noteNum is out of range");
+							//mStatusTextView.setText("Note must be in range 1-88 inclusive. 1 = Bottommost note");
+							return;
+						}
+						
+						Log.i(TAG, "Recording...");
+						//mStatusTextView.setText("Recording...");
+						
+						double[][] samples;
+						if (mNumSamplesForThisMap == -1) { //if this is the first recording for this map
+							samples = mAudioCollector.getSamplesFor(3000000);
+							mNumSamplesForThisMap = samples.length;
+							Log.i(TAG, "First time for new map, got " + mNumSamplesForThisMap + " samples");
+						}
+						else {
+							Log.i(TAG, "Getting another " + mNumSamplesForThisMap + " samples");
+							samples = mAudioCollector.getNSamples(mNumSamplesForThisMap);
+						}
+						
+						Log.i(TAG,"Averaging samples");
+						//mStatusTextView.setText("Averaging samples");
+						Double[] averaged = Helper.averageArraysIntoDoubleObjects(samples);
+						
+						Log.i(TAG,"Adding to hashmap");
+						//mStatusTextView.setText("Adding to HashMap");
+						if (mNoteSpectraMap.containsKey(Integer.valueOf(noteNum))) {
+							Log.i(TAG, "Overwriting previous hashmap entry for note " + noteNum);
+							//mStatusTextView.setText("Overwriting previous entry for this note");
+							mNoteSpectraMap.remove(Integer.valueOf(noteNum));
+						}
+						
+						mNoteSpectraMap.put(Integer.valueOf(noteNum), averaged);				
+						
+						runOnUiThread(new Runnable() {
+							@Override
+							public void run() {
+								mStatusTextView.setText("Finished recording and saving " + mNumSamplesForThisMap + " averaged samples in 3 seconds for note #" + noteNum);
+
+								enableInputs();
+							}
+						});		
+						
+					}
+				}.start();
 				
 			}
 		});
@@ -187,19 +211,32 @@ public class DatacollectActivity extends Activity {
 	private void disableInputs() {
 		mNumRecordingsEditText.setEnabled(false);
 		mStartNRecordingsButton.setEnabled(false);
+		
 		mTimedRecordingEditText.setEnabled(false);
 		mStartTimedRecordingButton.setEnabled(false);
+		
 		mNoteNumEditText.setEnabled(false);
 		mGetNoteDataButton.setEnabled(false);
+		
+		mStartNewMapButton.setEnabled(false);
+		mNewNoteMapNameEditText.setEnabled(false);
+		mSaveNewMap.setEnabled(false);
+		
 	}
 	
 	private void enableInputs() {
 		mNumRecordingsEditText.setEnabled(true);
 		mStartNRecordingsButton.setEnabled(true);
+		
 		mTimedRecordingEditText.setEnabled(true);
 		mStartTimedRecordingButton.setEnabled(true);
+		
 		mNoteNumEditText.setEnabled(true);
 		mGetNoteDataButton.setEnabled(true);
+		
+		mStartNewMapButton.setEnabled(true);
+		mNewNoteMapNameEditText.setEnabled(true);
+		mSaveNewMap.setEnabled(true);
 	}
 	
 	

@@ -45,7 +45,7 @@ public class AudioCollector extends Audio {
 			//for (int j = 0; j < getExternalBufferSize(); j++) {
 			//	sampleArrays[i][j] = mRawAudioData[j];
 			//}
-			Log.i(TAG,"Updating audio data buffer and saving it to another double array took \n" + (System.nanoTime()-tmpT)/1000 + " us");
+			Log.i(TAG,"Updating audio data buffer and saving it to another double array took: " + (System.nanoTime()-tmpT)/1000 + " us");
 			
 		}
 		
@@ -75,7 +75,7 @@ public class AudioCollector extends Audio {
 		}
 		
 		stopAudioRecording();
-		//does this work????
+		//does this work???? -- apparently!
 		return (double[][]) samples.toArray(new double[samples.size()][]);
 	}
 	

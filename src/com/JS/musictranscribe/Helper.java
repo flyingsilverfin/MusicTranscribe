@@ -6,6 +6,7 @@ import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -37,33 +38,42 @@ public class Helper {
 			return noteSpectraMap;
 		}
 	
-		String s;
-		int key;
-		Double[] vals = new Double[EXTERNAL_BUFFER_SIZE/2]; //this is used for FFT data, which is 1/2 number of Audio data
+		ArrayList<Double> firstVals = new ArrayList<Double>(); //need this to see how long each data chunk is
+		Double[] vals;
 		try {
-			s = file.readLine();
-			
+			String s = file.readLine();
+			Integer key = Integer.parseInt(s.replace("\n",""));
 
-			while (s != null) { //while not at end of file
-				key = Integer.parseInt(s.replace("\n", ""));
-				for (int i = 0; i < vals.length; i++) {
-					s = file.readLine();
-					vals[i] =	Double.parseDouble(s.replace("\n", ""));
-				}
-				
-				noteSpectraMap.put(Integer.valueOf(key), vals);
-				
-				//finished one set of data, check to make sure next line is a newline
+			while (s != "\n") { //while not at end of first chunk of data
 				s = file.readLine();
-				while (s != "\n"); {
-					s = file.readLine();
+				firstVals.add(Double.valueOf(s.replace("\n","")));
+			}
+			
+			int size = firstVals.size();
+			vals = new Double[size];
+			
+			//copy the ArrayList into the new array
+			for (int i = 0; i < size; i++) {
+				vals[i] = firstVals.get(i);
+			}
+			
+			noteSpectraMap.put(key, vals);
+			while (s != null) {
+			
+				key = Integer.parseInt(file.readLine().replace("\n", ""));
+				for (int i = 0; i < size; i++) {
+					vals[i] = Double.valueOf(file.readLine().replace("\n",""));
 				}
 				
-				s = file.readLine(); 	//this is the next key, gets added next cycle, if didn't hit end of file
+				noteSpectraMap.put(key,vals);
+				
+				s = file.readLine(); //skip the newline between chunks of data
+
+				s = file.readLine(); 	//this is the next key if its not end of file (eg null, I think)
 			}
 			
 		} catch (IOException e) {
-			
+			Log.e(TAG,"FAILED! Some error writing file");
 		}
 		
 		return noteSpectraMap;
@@ -73,6 +83,7 @@ public class Helper {
 		BufferedWriter file;
 		try {
 			file = new BufferedWriter(new OutputStreamWriter(context.openFileOutput(filename, context.MODE_PRIVATE)));
+			Log.i(TAG,"Created new File object");
 		} catch (FileNotFoundException e) {
 			Log.e(TAG, "FAILED! Some file error creating new file \n" + e.toString());
 			return;
