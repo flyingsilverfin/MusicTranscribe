@@ -42,9 +42,9 @@ public class AudioCollector extends Audio {
 			tmpT = System.nanoTime();
 			
 			recordAudio(); //updates mRawAudioData, also accessible through getRawAudioArray()
-			//for (int j = 0; j < getExternalBufferSize(); j++) {
-			//	sampleArrays[i][j] = mRawAudioData[j];
-			//}
+			for (int j = 0; j < getExternalBufferSize(); j++) {
+				sampleArrays[i][j] = mRawAudioData[j];
+			}
 			Log.i(TAG,"Updating audio data buffer and saving it to another double array took: " + (System.nanoTime()-tmpT)/1000 + " us");
 			
 		}

@@ -190,5 +190,13 @@ public class Helper {
 		System.out.print("\n");
 	}
 	
+	public static void printArray(double[] array) {
+		for (int i = 0; i < array.length; i++) {
+			System.out.print(array[i]);
+			System.out.print(", ");
+		}
+		System.out.print("\n");
+	}
+	
 }
 		

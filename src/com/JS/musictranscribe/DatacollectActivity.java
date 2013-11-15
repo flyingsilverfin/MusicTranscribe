@@ -174,7 +174,9 @@ public class DatacollectActivity extends Activity {
 							mNoteSpectraMap.remove(Integer.valueOf(noteNum));
 						}
 						
-						mNoteSpectraMap.put(Integer.valueOf(noteNum), averaged);				
+						mNoteSpectraMap.put(Integer.valueOf(noteNum), averaged);	
+						
+						Log.i(TAG,"first value for this note is: " + mNoteSpectraMap.get(Integer.valueOf(noteNum))[0]);
 						
 						runOnUiThread(new Runnable() {
 							@Override
