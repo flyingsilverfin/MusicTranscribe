@@ -28,6 +28,7 @@
     <string name="start_new_map_button_text">Reset to new map</string>
     <string name="save_new_map_button_text">Write map to file</string>
     <string name="map_file_name_edittext_hint">Map Filename</string>
+  	<string name="load_note_map_button_text">Load this map</string>
     
     <!--  Misc/reusable -->
 	<string name="one">1</string>

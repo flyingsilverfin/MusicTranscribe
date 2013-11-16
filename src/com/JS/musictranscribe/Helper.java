@@ -33,31 +33,39 @@ public class Helper {
 		
 		BufferedReader file;
 		try {
-			file= new BufferedReader(new InputStreamReader(context.openFileInput(noteSpectraFileName)));
+			file= new BufferedReader(new InputStreamReader(context.openFileInput(noteSpectraFileName)), 16384);
 		} catch (FileNotFoundException e){
 			Log.e(TAG, "File not found \n" + e.toString());
 			return noteSpectraMap;
 		}
+		
 	
 		ArrayList<Double> firstVals = new ArrayList<Double>(); //need this to see how long each data chunk is
 		Double[] vals;
+		
+		Log.i(TAG, "Writing hashmap to file " + noteSpectraFileName);
 		try {
 			String s = file.readLine();
+			Log.i(TAG,s);
 			Integer key = Integer.parseInt(s.replace("\n",""));
 
-			while (s != "\n") { //while not at end of first chunk of data
+			int tmpCounter = 1;
+			while (!s.startsWith("\n")) { //while not at end of first chunk of data
 				s = file.readLine();
+				Log.i(TAG,tmpCounter + ". " + s);
 				firstVals.add(Double.valueOf(s.replace("\n","")));
+				tmpCounter++;
 			}
 			
 			int size = firstVals.size();
+			Log.i(TAG, "Size of these data chunks is: " + size);
 			vals = new Double[size];
 			
 			//copy the ArrayList into the new array
 			for (int i = 0; i < size; i++) {
 				vals[i] = firstVals.get(i);
 			}
-			
+			String tmp;
 			noteSpectraMap.put(key, vals);
 			while (s != null) {
 			
@@ -104,8 +112,12 @@ public class Helper {
 				key = entry.getKey().toString();
 				file.write(key + "\n"); //write the key
 				vals = entry.getValue();
+				int tmpCounter = 0;
+				Log.i(TAG,"Writing " + vals.length + " entries for current note: ");
 				for (int i = 0; i < vals.length; i++) { 	//write the array of values
+					Log.i(TAG, tmpCounter + ". " + vals[i].toString());
 					file.write(vals[i].toString() + "\n");
+					tmpCounter++;
 				}
 				file.write("\n"); //end of one entry
 			}

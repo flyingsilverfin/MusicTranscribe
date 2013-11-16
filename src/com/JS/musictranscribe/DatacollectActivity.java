@@ -41,15 +41,20 @@ public class DatacollectActivity extends Activity {
 	
 	private EditText mNoteNumEditText;
 	private Button mGetNoteDataButton;
-	private TextView mStatusTextView;
 	
+	private TextView mStatusTextView;
 	
 	private Button mStartNewMapButton;
 	private HashMap<Integer, Double[]> mNoteSpectraMap;
 	private int mNumSamplesForThisMap;
 	
 	private EditText mNewNoteMapNameEditText;
-	private Button mSaveNewMap;
+	private Button mSaveNewMapButton;
+	
+	private EditText mLoadNoteMapEditText;
+	private Button mLoadNewMapButton;
+	
+	
 	
 	private AudioCollector mAudioCollector;
 	
@@ -114,8 +119,8 @@ public class DatacollectActivity extends Activity {
 		
 		
 		mNewNoteMapNameEditText = (EditText) findViewById(R.id.new_note_map_name_edittext);
-		mSaveNewMap = (Button) findViewById(R.id.save_new_map_button);
-		mSaveNewMap.setOnClickListener(new View.OnClickListener() {
+		mSaveNewMapButton = (Button) findViewById(R.id.save_new_map_button);
+		mSaveNewMapButton.setOnClickListener(new View.OnClickListener() {
 			
 			@Override
 			public void onClick(View v) {
@@ -234,7 +239,24 @@ public class DatacollectActivity extends Activity {
 			}
 		});
 		
-		
+		mLoadNoteMapEditText = (EditText) findViewById(R.id.load_note_map_edittext);
+		mLoadNewMapButton = (Button) findViewById(R.id.load_note_map_button);
+		mLoadNewMapButton.setOnClickListener(new View.OnClickListener() {
+			
+			@Override
+			public void onClick(View v) {
+				String fileName;
+				fileName = mLoadNoteMapEditText.getText().toString();
+				if (fileName.length() == 0) {
+					Log.e(TAG,"no name entered!");
+					mStatusTextView.setText("Enter a name!");
+					return;
+				}
+				mNoteSpectraMap = Helper.getNoteSpectraFromFile(getApplicationContext(), fileName);
+				
+				Log.i(TAG,mNoteSpectraMap.keySet().toString());
+			}
+		});
 		
 		
 		mAudioCollector = new AudioCollector(AudioSource.MIC, Helper.SAMPLING_SPEED, 
@@ -263,7 +285,7 @@ public class DatacollectActivity extends Activity {
 		
 		mStartNewMapButton.setEnabled(false);
 		mNewNoteMapNameEditText.setEnabled(false);
-		mSaveNewMap.setEnabled(false);
+		mSaveNewMapButton.setEnabled(false);
 		
 	}
 	
@@ -279,7 +301,7 @@ public class DatacollectActivity extends Activity {
 		
 		mStartNewMapButton.setEnabled(true);
 		mNewNoteMapNameEditText.setEnabled(true);
-		mSaveNewMap.setEnabled(true);
+		mSaveNewMapButton.setEnabled(true);
 	}
 	
 	
