@@ -106,6 +106,7 @@ public class DatacollectActivity extends Activity {
 			@Override
 			public void onClick(View v) {
 				Log.i(TAG, "Referencing HashMap to new empty HashMap");
+				mStatusTextView.setText("Initialized new map");
 				mNoteSpectraMap = new HashMap<Integer, Double[]>();
 				mNumSamplesForThisMap = -1;
 			}
@@ -118,7 +119,26 @@ public class DatacollectActivity extends Activity {
 			
 			@Override
 			public void onClick(View v) {
-				Helper.writeNewNoteSpectraFile(getApplicationContext(), mNewNoteMapNameEditText.getText().toString(), mNoteSpectraMap);
+				
+				if (mNoteSpectraMap.keySet().size() == 0) {
+					Log.i(TAG,"Note map is empty, aborting");
+					mStatusTextView.setText("Note map is empty! Aborting.");
+					return;
+				}
+				
+				String fileName;
+				fileName = mNewNoteMapNameEditText.getText().toString();
+				if (fileName.length() == 0) {
+					Log.e(TAG,"no name entered!");
+					mStatusTextView.setText("Enter a name!");
+					return;
+				}
+				
+				try{
+					Helper.writeNewNoteSpectraFile(getApplicationContext(), fileName, mNoteSpectraMap);
+				} catch (Exception e) {
+					mStatusTextView.setText(e.getMessage());
+				}
 			}
 		});
 		
@@ -130,10 +150,37 @@ public class DatacollectActivity extends Activity {
 		mGetNoteDataButton.setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View v) {
-				Log.i(TAG,"creating new thread");
 				new Thread() {
 					public void run() {
-						final int noteNum = Integer.parseInt(mNoteNumEditText.getText().toString());
+						
+						int n;
+						try {
+							n = Integer.parseInt(mNoteNumEditText.getText().toString());
+						} catch (NumberFormatException e) {
+							Log.e(TAG,"invalid note number!");
+							runOnUiThread(new Runnable() {
+								@Override
+								public void run() {
+									mStatusTextView.setText("Not a valid number");
+								}
+							});
+							return; //exit out!
+						}
+						
+						final int noteNum = n;
+
+						
+						if (noteNum < 1 || noteNum > 88) {	//use human counting, 1-88 allowed inclusive
+							Log.e(TAG,"noteNum is out of range");
+							runOnUiThread(new Runnable() {
+								@Override
+								public void run() {
+									mStatusTextView.setText("Note must be in range 1-88 inclusive");
+								}
+							});
+							return; //exit out!
+						}
+						
 						
 						runOnUiThread(new Runnable() {
 							@Override
@@ -142,11 +189,7 @@ public class DatacollectActivity extends Activity {
 							}
 						});
 						
-						if (noteNum < 1 || noteNum > 88) {	//use human counting, 1-88 allowed inclusive
-							Log.e(TAG,"noteNum is out of range");
-							//mStatusTextView.setText("Note must be in range 1-88 inclusive. 1 = Bottommost note");
-							return;
-						}
+						
 						
 						Log.i(TAG, "Recording...");
 						//mStatusTextView.setText("Recording...");
@@ -175,9 +218,7 @@ public class DatacollectActivity extends Activity {
 						}
 						
 						mNoteSpectraMap.put(Integer.valueOf(noteNum), averaged);	
-						
-						Log.i(TAG,"first value for this note is: " + mNoteSpectraMap.get(Integer.valueOf(noteNum))[0]);
-						
+												
 						runOnUiThread(new Runnable() {
 							@Override
 							public void run() {

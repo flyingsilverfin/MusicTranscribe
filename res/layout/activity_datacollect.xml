@@ -73,12 +73,6 @@
             android:layout_height="wrap_content"
             android:text="@string/get_note_data_button_text" />
         
-        <TextView 
-            android:id="@+id/status_textview"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text=""
-            />
     </LinearLayout>
     
     <LinearLayout
@@ -104,10 +98,12 @@
    	        android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/save_new_map_button_text" />
-    	
    	</LinearLayout>
-
-    	
-    	
+   	
+    <TextView 
+	    android:id="@+id/status_textview"
+	    android:layout_width="wrap_content"
+	    android:layout_height="wrap_content"
+	    android:text="hi" />
 
 </LinearLayout>

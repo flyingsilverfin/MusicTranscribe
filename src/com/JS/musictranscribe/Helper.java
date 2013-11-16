@@ -2,6 +2,7 @@ package com.JS.musictranscribe;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -79,14 +80,21 @@ public class Helper {
 		return noteSpectraMap;
 	}
 	
-	public static void writeNewNoteSpectraFile(Context context, String filename, HashMap<Integer, Double[]> noteSpectraMap) {
+	public static void writeNewNoteSpectraFile(Context context, String filename, HashMap<Integer, Double[]> noteSpectraMap) throws  Exception {
+		for (String f : context.fileList()) {
+			if (filename.equals(f)) {
+				Log.e(TAG,"File exists!");
+				throw new Exception("File Exists");
+			}
+		}
+		
 		BufferedWriter file;
 		try {
 			file = new BufferedWriter(new OutputStreamWriter(context.openFileOutput(filename, context.MODE_PRIVATE)));
 			Log.i(TAG,"Created new File object");
 		} catch (FileNotFoundException e) {
 			Log.e(TAG, "FAILED! Some file error creating new file \n" + e.toString());
-			return;
+			throw new Exception("Could not create file");
 		}
 		
 		String key;
@@ -103,6 +111,7 @@ public class Helper {
 			}
 		} catch (IOException e) {
 			Log.e(TAG,"FAILED! Error writing new file \n" + e.toString());
+			throw new Exception("Error writing file");
 		}
 	}
 	
