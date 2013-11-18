@@ -54,6 +54,7 @@ public class DatacollectActivity extends Activity {
 	private EditText mLoadNoteMapEditText;
 	private Button mLoadNewMapButton;
 	
+	private Button mDeleteAllFiles;
 	
 	
 	private AudioCollector mAudioCollector;
@@ -255,6 +256,15 @@ public class DatacollectActivity extends Activity {
 				mNoteSpectraMap = Helper.getNoteSpectraFromFile(getApplicationContext(), fileName);
 				
 				Log.i(TAG,mNoteSpectraMap.keySet().toString());
+			}
+		});
+		
+		mDeleteAllFiles = (Button) findViewById(R.id.delete_all_private_files_button);
+		mDeleteAllFiles.setOnClickListener(new View.OnClickListener() {
+			
+			@Override
+			public void onClick(View v) {
+				Helper.deleteAllPrivFiles(getApplicationContext());
 			}
 		});
 		

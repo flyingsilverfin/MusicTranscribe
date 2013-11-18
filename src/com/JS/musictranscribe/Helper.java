@@ -43,18 +43,19 @@ public class Helper {
 		ArrayList<Double> firstVals = new ArrayList<Double>(); //need this to see how long each data chunk is
 		Double[] vals;
 		
-		Log.i(TAG, "Writing hashmap to file " + noteSpectraFileName);
+		Log.i(TAG, "Reading map file: " + noteSpectraFileName);
 		try {
-			String s = file.readLine();
+			String s = file.readLine(); //STRIPS NEWLINES
 			Log.i(TAG,s);
-			Integer key = Integer.parseInt(s.replace("\n",""));
-
+			Integer key = Integer.parseInt(s);
+			
 			int tmpCounter = 1;
-			while (!s.startsWith("\n")) { //while not at end of first chunk of data
-				s = file.readLine();
+			s = file.readLine();
+			while (s.length() != 0) { //while not at end of first chunk of data
 				Log.i(TAG,tmpCounter + ". " + s);
-				firstVals.add(Double.valueOf(s.replace("\n","")));
+				firstVals.add(Double.valueOf(s));
 				tmpCounter++;
+				s = file.readLine();
 			}
 			
 			int size = firstVals.size();
@@ -65,13 +66,12 @@ public class Helper {
 			for (int i = 0; i < size; i++) {
 				vals[i] = firstVals.get(i);
 			}
-			String tmp;
 			noteSpectraMap.put(key, vals);
 			while (s != null) {
 			
-				key = Integer.parseInt(file.readLine().replace("\n", ""));
+				key = Integer.parseInt(file.readLine());
 				for (int i = 0; i < size; i++) {
-					vals[i] = Double.valueOf(file.readLine().replace("\n",""));
+					vals[i] = Double.valueOf(file.readLine());
 				}
 				
 				noteSpectraMap.put(key,vals);
@@ -127,6 +127,13 @@ public class Helper {
 		}
 	}
 	
+	public static void deleteAllPrivFiles(Context context) {
+		String[] files =  context.fileList();
+		
+		for (String file : files) {
+			context.deleteFile(file);
+		}
+	}
 	
 	public static int nextLowerPowerOf2(int num) {
 		int r = 1; 
