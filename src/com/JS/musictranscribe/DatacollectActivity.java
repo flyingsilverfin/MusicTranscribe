@@ -85,6 +85,7 @@ public class DatacollectActivity extends Activity {
 				Log.i(TAG,"\tGoing to record: " + num + "times");
 				double[][] result = mAudioCollector.getNSamples(num);
 				mAudioCollector.writeSamplesToDropbox(result, num+"recordings");
+				status("Recorded " + result.length + " recordings and uploaded to Dropbox if logged in");
 				enableInputs();
 			}
 		});
@@ -99,6 +100,8 @@ public class DatacollectActivity extends Activity {
 				disableInputs();
 				Log.i(TAG,"\tGoing to record for: " + mTimedRecordingEditText.getText().toString() + "milliseconds");
 				double[][] result = mAudioCollector.getSamplesFor(msecs*1000);
+				status("Recorded " + result.length + " recordings in " +  mTimedRecordingEditText.getText().toString() +
+						" ms and uploaded to Dropbox if logged in");
 				mAudioCollector.writeSamplesToDropbox(result, msecs+"msRecording");
 				enableInputs();
 				
@@ -112,7 +115,7 @@ public class DatacollectActivity extends Activity {
 			@Override
 			public void onClick(View v) {
 				Log.i(TAG, "Referencing HashMap to new empty HashMap");
-				mStatusTextView.setText("Initialized new map");
+				status("Initialized new map");
 				mNoteSpectraMap = new HashMap<Integer, Double[]>();
 				mNumSamplesForThisMap = -1;
 			}
@@ -128,7 +131,7 @@ public class DatacollectActivity extends Activity {
 				
 				if (mNoteSpectraMap.keySet().size() == 0) {
 					Log.i(TAG,"Note map is empty, aborting");
-					mStatusTextView.setText("Note map is empty! Aborting.");
+					status("Note map is empty! Aborting.");
 					return;
 				}
 				
@@ -136,14 +139,15 @@ public class DatacollectActivity extends Activity {
 				fileName = mNewNoteMapNameEditText.getText().toString();
 				if (fileName.length() == 0) {
 					Log.e(TAG,"no name entered!");
-					mStatusTextView.setText("Enter a name!");
+					status("Enter a name!");
 					return;
 				}
 				
 				try{
 					Helper.writeNewNoteSpectraFile(getApplicationContext(), fileName, mNoteSpectraMap);
+					status("Wrote data to new file " + fileName);
 				} catch (Exception e) {
-					mStatusTextView.setText(e.getMessage());
+					status(e.getMessage());
 				}
 			}
 		});
@@ -167,21 +171,20 @@ public class DatacollectActivity extends Activity {
 							runOnUiThread(new Runnable() {
 								@Override
 								public void run() {
-									mStatusTextView.setText("Not a valid number");
+									status("Not a valid number");
 								}
 							});
 							return; //exit out!
 						}
 						
 						final int noteNum = n;
-
 						
 						if (noteNum < 1 || noteNum > 88) {	//use human counting, 1-88 allowed inclusive
 							Log.e(TAG,"noteNum is out of range");
 							runOnUiThread(new Runnable() {
 								@Override
 								public void run() {
-									mStatusTextView.setText("Note must be in range 1-88 inclusive");
+									status("Note must be in range 1-88 inclusive");
 								}
 							});
 							return; //exit out!
@@ -196,9 +199,7 @@ public class DatacollectActivity extends Activity {
 						});
 						
 						
-						
 						Log.i(TAG, "Recording...");
-						//mStatusTextView.setText("Recording...");
 						
 						double[][] samples;
 						if (mNumSamplesForThisMap == -1) { //if this is the first recording for this map
@@ -211,25 +212,21 @@ public class DatacollectActivity extends Activity {
 							samples = mAudioCollector.getNSamples(mNumSamplesForThisMap);
 						}
 						
-						Log.i(TAG,"Averaging samples");
-						//mStatusTextView.setText("Averaging samples");
-						Double[] averaged = Helper.averageArraysIntoDoubleObjects(samples);
+						Log.i(TAG,"Averaging samples &  doing FFT");
+						Double[] fft = mAudioCollector.fftIntoDoubleObjects(Helper.averageArrays(samples));
 						
 						Log.i(TAG,"Adding to hashmap");
-						//mStatusTextView.setText("Adding to HashMap");
 						if (mNoteSpectraMap.containsKey(Integer.valueOf(noteNum))) {
 							Log.i(TAG, "Overwriting previous hashmap entry for note " + noteNum);
-							//mStatusTextView.setText("Overwriting previous entry for this note");
-							mNoteSpectraMap.remove(Integer.valueOf(noteNum));
+							mNoteSpectraMap.remove(Integer.valueOf(noteNum)); //remove to overwrite if exists
 						}
 						
-						mNoteSpectraMap.put(Integer.valueOf(noteNum), averaged);	
+						mNoteSpectraMap.put(Integer.valueOf(noteNum), fft);	
 												
 						runOnUiThread(new Runnable() {
 							@Override
 							public void run() {
-								mStatusTextView.setText("Finished recording and saving " + mNumSamplesForThisMap + " averaged samples in 3 seconds for note #" + noteNum);
-
+								status("Finished recording and saving " + mNumSamplesForThisMap + " averaged samples in 3 seconds for note #" + noteNum);
 								enableInputs();
 							}
 						});		
@@ -250,12 +247,13 @@ public class DatacollectActivity extends Activity {
 				fileName = mLoadNoteMapEditText.getText().toString();
 				if (fileName.length() == 0) {
 					Log.e(TAG,"no name entered!");
-					mStatusTextView.setText("Enter a name!");
+					status("Enter a name!");
 					return;
 				}
-				mNoteSpectraMap = Helper.getNoteSpectraFromFile(getApplicationContext(), fileName);
 				
-				Log.i(TAG,mNoteSpectraMap.keySet().toString());
+				mNoteSpectraMap = Helper.getNoteSpectraFromFile(getApplicationContext(), fileName);
+				status("Retrieved " + mNoteSpectraMap.keySet().size() + " key/data sets from file " + fileName);
+				Log.i(TAG, "Keys/data sets retrieved: " + mNoteSpectraMap.keySet().toString());
 			}
 		});
 		
@@ -265,6 +263,7 @@ public class DatacollectActivity extends Activity {
 			@Override
 			public void onClick(View v) {
 				Helper.deleteAllPrivFiles(getApplicationContext());
+				status("Deleted all data files!");
 			}
 		});
 		
@@ -297,6 +296,11 @@ public class DatacollectActivity extends Activity {
 		mNewNoteMapNameEditText.setEnabled(false);
 		mSaveNewMapButton.setEnabled(false);
 		
+		mLoadNoteMapEditText.setEnabled(false);
+		mLoadNewMapButton.setEnabled(false);
+		
+		mDeleteAllFiles.setEnabled(false);
+		
 	}
 	
 	private void enableInputs() {
@@ -312,8 +316,18 @@ public class DatacollectActivity extends Activity {
 		mStartNewMapButton.setEnabled(true);
 		mNewNoteMapNameEditText.setEnabled(true);
 		mSaveNewMapButton.setEnabled(true);
+		
+		mLoadNoteMapEditText.setEnabled(true);
+		mLoadNewMapButton.setEnabled(true);
+		
+		mDeleteAllFiles.setEnabled(true);
+		
 	}
 	
+	
+	private void status(String msg) {
+		mStatusTextView.setText(msg);
+	}
 	
 	/**
 	 * Set up the {@link android.app.ActionBar}, if the API is available.

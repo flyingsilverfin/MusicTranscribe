@@ -304,7 +304,7 @@ public class Matrix {
 		}		
 	}
 	
-	
+	//reduce a row m by  1/indicated element of that row (indexToReduceBy)
 	private void reduceRow(int m, int indexToReduceBy) {
 		double factor = 1/mMatrix[m][indexToReduceBy];
 		for (int i = 0; i < mWidth; i++) {
@@ -504,6 +504,18 @@ public class Matrix {
 		}
 	}
 	
+	public void writeCol(int n, Double[] col) {
+		int h = mHeight;
+		Log.i(TAG,col.toString());
+		if (col.length != mHeight) {
+			Log.e(TAG,"Given column's height does not equal matrix's height, using minimum");
+			h = Math.min(mHeight, col.length);
+		}
+		for (int j = 0; j < h; j++) {
+			mMatrix[j][n] = col[j];
+		}
+	}
+	
 	/*
 	 * accept negatives to count from the end too
 	 */
@@ -601,6 +613,18 @@ public class Matrix {
 			copy.writeRow(j, getRowCopy(j));
 		}
 		return copy;
+	}
+	
+	public Matrix getTranspose() {
+		Matrix transpose = new Matrix(mWidth, mHeight); //switch the height and width for transpose!
+		
+		for (int i = 0; i < mHeight; i++) {
+			for (int j = 0; j < mWidth; i++) {
+				transpose.writeElem(j, i, mMatrix[i][j]);
+			}
+		}
+		
+		return transpose;
 	}
 	
 	

@@ -1,9 +1,12 @@
 package com.JS.musictranscribe;
 
 
-import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
 
 import android.app.Activity;
+import android.app.ActivityManager;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
@@ -24,7 +27,7 @@ public class MainActivity extends Activity {
 	private Button mGotoDatacollectButton;
 	private Button mLibraryButton;
 	private Button mDropboxLoginButton;
-	private Button mRandomMatrixRREFButton;
+	private Button mTestingButton;
 	
 	//Dropbox
 	private DropboxAPI<AndroidAuthSession> mDBApi; 
@@ -97,8 +100,8 @@ public class MainActivity extends Activity {
 
 
 		
-		mRandomMatrixRREFButton = (Button) findViewById(R.id.random_matrix_button);
-		mRandomMatrixRREFButton.setOnClickListener(new View.OnClickListener() {
+		mTestingButton = (Button) findViewById(R.id.random_matrix_button);
+		mTestingButton.setOnClickListener(new View.OnClickListener() {
 			
 			public void onClick(View v) {
 				
@@ -135,7 +138,7 @@ public class MainActivity extends Activity {
 				Log.i(TAG, "RREF took: " + Long.toString((System.nanoTime()-t)/1000));	
 				Log.i(TAG, "Record length is: " + record.size());
 				
-				*/
+				
 				Log.i(TAG, "Generating matrix 1");
 				Matrix matrix = new Matrix(88, 2024);
 				Log.i(TAG,"Filling matrix 1");
@@ -162,14 +165,34 @@ public class MainActivity extends Activity {
 				Log.i(TAG,"Length of record: " + record.size());
 				Log.i(TAG,"Multiplication: " + ((t2-t)/1000) + "us");
 				Log.i(TAG,"modification by record: " + (System.nanoTime() - t2)/1000 + "us");
+				*/
 				
 				
+				HashMap<Integer, Double[]> noteSpectraMap = Helper.getNoteSpectraFromFile(getApplicationContext(), "default2");
+				Integer[] noteNums = noteSpectraMap.keySet().toArray(new Integer[1]);
 				
+				Matrix dataMatrix = new Matrix(noteSpectraMap.get(noteNums[0]).length, noteNums.length); //map must have values of same length
+
+				Arrays.sort(noteNums);
 				
+				for (int i = 0; i < noteNums.length; i++) {
+					dataMatrix.writeCol(i, noteSpectraMap.get(i));
+				}
+				
+				Matrix dataTranspose = dataMatrix.getTranspose();
+				Matrix sqrMatrix = dataTranspose.multOnLeftOf(dataMatrix);
+				
+				sqrMatrix.printMatrix();
+				
+								
 				
 				
 			}
 		});
+		
+		ActivityManager activityManager = (ActivityManager) getSystemService(ACTIVITY_SERVICE);
+		Log.i(TAG,"HI");
+		Log.i(TAG,"Maximum around of memory allowed for this device: " + activityManager.getMemoryClass());
 	}
 	
 

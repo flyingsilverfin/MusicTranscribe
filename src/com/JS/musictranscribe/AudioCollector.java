@@ -9,13 +9,14 @@ public class AudioCollector extends Audio {
 
 	private final static String TAG = "AudioCollector";
 	
+	private DoubleFFT_1D mFFT; //FFT object
+
+	
 	public AudioCollector(int audioSource, int samplingSpeed, boolean isMonoFormat, boolean is16BitFormat, int externalBufferSize, Context context) {
-		super(audioSource,samplingSpeed, isMonoFormat, is16BitFormat, externalBufferSize, context);
+		super(audioSource,samplingSpeed, isMonoFormat, is16BitFormat, externalBufferSize, context);		
 		
-		
-		
-		
-		
+		mFFT = new DoubleFFT_1D(mExternalBufferSize);
+
 	}
 	
 	public double[][] getNSamples(int n) {
@@ -110,5 +111,54 @@ public class AudioCollector extends Audio {
 		r uploadRunnable = new r(sampleArrays, fileName);
 		new Thread(uploadRunnable).start();
 	}
+	
+	public double[] fftOnCurrentAudioData() {
+		double[] audioDataCopy = getRawAudioArrayAsDoubles(); //get copy of data
+
+		mFFT.realForward(audioDataCopy);
+
+		double[] fftCoeffs = new double[(audioDataCopy.length / 2) - 1];
+
+		for (int i = 2; i < audioDataCopy.length; i += 2) {
+			fftCoeffs[(i - 2) / 2] = Math.sqrt(Math.pow(audioDataCopy[i], 2)
+					+ Math.pow(audioDataCopy[i + 1], 2));
+		}
+		return fftCoeffs;
+	}
+	
+	public double[] fft(double[] data) {
+		double[] dataCopy = new double[data.length];
+		for (int i = 0; i < data.length; i++) {
+			dataCopy[i] = data[i];
+		}
+		
+		mFFT.realForward(dataCopy);
+		
+		double[] fftCoeffs = new double[(dataCopy.length/2) - 1];
+
+		for (int i = 2; i < dataCopy.length; i += 2) { //skip the first two, they are total and # data or somthing
+			fftCoeffs[(i - 2) / 2] = Math.sqrt(Math.pow(dataCopy[i], 2)
+					+ Math.pow(dataCopy[i + 1], 2));
+		}
+		return fftCoeffs;
+	}
+	
+	public Double[] fftIntoDoubleObjects(double[] data) {
+		double[] dataCopy = new double[data.length];
+		for (int i = 0; i < data.length; i++) {
+			dataCopy[i] = data[i];
+		}
+		
+		mFFT.realForward(dataCopy);
+		
+		Double[] fftCoeffs = new Double[(dataCopy.length/2) - 1];
+
+		for (int i = 2; i < dataCopy.length; i += 2) { //skip the first two, they are total and # data or somthing
+			fftCoeffs[(i - 2) / 2] = Math.sqrt(Math.pow(dataCopy[i], 2)
+					+ Math.pow(dataCopy[i + 1], 2));
+		}
+		return fftCoeffs;
+	}
+	
 	
 }

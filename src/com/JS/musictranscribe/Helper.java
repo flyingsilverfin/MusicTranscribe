@@ -22,8 +22,8 @@ public class Helper {
 	 * App-wide Audio options
 	 */
 	public static int SAMPLING_SPEED = 44100;
-	public static  final int DESIRED_EXTERNAL_BUFFER_TIME = 100; //desired milliseconds
-	public static  final int EXTERNAL_BUFFER_SIZE = nextLowerPowerOf2((int)(SAMPLING_SPEED*((float)DESIRED_EXTERNAL_BUFFER_TIME/1000))); //find next lower power of two
+	public static final int DESIRED_EXTERNAL_BUFFER_TIME = 100; //desired milliseconds
+	public static final int EXTERNAL_BUFFER_SIZE = nextLowerPowerOf2((int)(SAMPLING_SPEED*((float)DESIRED_EXTERNAL_BUFFER_TIME/1000))); //find next lower power of two
 	public static final int EXTERNAL_BUFFER_TIME = EXTERNAL_BUFFER_SIZE*1000/SAMPLING_SPEED; //find actual time being measured based on above
 	
 	public static final String defaultNoteSpectraFile = "defaultNotes";
@@ -33,7 +33,7 @@ public class Helper {
 		
 		BufferedReader file;
 		try {
-			file= new BufferedReader(new InputStreamReader(context.openFileInput(noteSpectraFileName)), 16384);
+			file= new BufferedReader(new InputStreamReader(context.openFileInput(noteSpectraFileName)));
 		} catch (FileNotFoundException e){
 			Log.e(TAG, "File not found \n" + e.toString());
 			return noteSpectraMap;
@@ -46,15 +46,11 @@ public class Helper {
 		Log.i(TAG, "Reading map file: " + noteSpectraFileName);
 		try {
 			String s = file.readLine(); //STRIPS NEWLINES
-			Log.i(TAG,s);
 			Integer key = Integer.parseInt(s);
 			
-			int tmpCounter = 1;
 			s = file.readLine();
-			while (s.length() != 0) { //while not at end of first chunk of data
-				Log.i(TAG,tmpCounter + ". " + s);
+			while (s.length() != 0) { //while not at end of first chunk of data. DOES read newline
 				firstVals.add(Double.valueOf(s));
-				tmpCounter++;
 				s = file.readLine();
 			}
 			
@@ -66,24 +62,28 @@ public class Helper {
 			for (int i = 0; i < size; i++) {
 				vals[i] = firstVals.get(i);
 			}
-			noteSpectraMap.put(key, vals);
-			while (s != null) {
 			
-				key = Integer.parseInt(file.readLine());
+			noteSpectraMap.put(key, vals);
+			s = file.readLine(); //either get next key or get null
+			while (s != null) {
+				key = Integer.parseInt(s);
 				for (int i = 0; i < size; i++) {
-					vals[i] = Double.valueOf(file.readLine());
+					s = file.readLine();
+					vals[i] = Double.valueOf(s);
 				}
 				
 				noteSpectraMap.put(key,vals);
 				
 				s = file.readLine(); //skip the newline between chunks of data
+				s = file.readLine(); //either this is the next key or null
 
-				s = file.readLine(); 	//this is the next key if its not end of file (eg null, I think)
 			}
 			
+
 		} catch (IOException e) {
 			Log.e(TAG,"FAILED! Some error writing file");
 		}
+		
 		
 		return noteSpectraMap;
 	}
@@ -112,12 +112,9 @@ public class Helper {
 				key = entry.getKey().toString();
 				file.write(key + "\n"); //write the key
 				vals = entry.getValue();
-				int tmpCounter = 0;
 				Log.i(TAG,"Writing " + vals.length + " entries for current note: ");
 				for (int i = 0; i < vals.length; i++) { 	//write the array of values
-					Log.i(TAG, tmpCounter + ". " + vals[i].toString());
 					file.write(vals[i].toString() + "\n");
-					tmpCounter++;
 				}
 				file.write("\n"); //end of one entry
 			}
@@ -125,12 +122,17 @@ public class Helper {
 			Log.e(TAG,"FAILED! Error writing new file \n" + e.toString());
 			throw new Exception("Error writing file");
 		}
+		
+		file.close();
 	}
 	
 	public static void deleteAllPrivFiles(Context context) {
 		String[] files =  context.fileList();
 		
 		for (String file : files) {
+			if (file.equals("default")) { //default file should not be deleted
+				continue;
+			}
 			context.deleteFile(file);
 		}
 	}
@@ -182,7 +184,7 @@ public class Helper {
 	
 	
 	public static double[] averageArrays(double[][] data) { //must be a regularly shaped matrix (all same length)
-		double[] result = new double[data.length];
+		double[] result = new double[data[0].length];
 		for (int i = 0; i < data[0].length; i++) {
 			for (int j = 0; j < data.length; j++) {
 				result[i] += data[j][i];
@@ -204,6 +206,18 @@ public class Helper {
 		}
 		
 		return result;
+	}
+	
+	
+	public double[] getFrequencyAxis(float lengthInMs, int num){
+		double[] frequencyAxis = new double[num];
+		frequencyAxis[0] = 1/lengthInMs; //base frequency
+		
+		for (int i = 1; i < num; i++) {
+			frequencyAxis[i] = frequencyAxis[0] * (i+1);
+		}
+		
+		return frequencyAxis;
 	}
 	
 	
