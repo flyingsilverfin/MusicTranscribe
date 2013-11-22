@@ -126,22 +126,6 @@ public class AudioCollector extends Audio {
 		return fftCoeffs;
 	}
 	
-	public double[] fft(double[] data) {
-		double[] dataCopy = new double[data.length];
-		for (int i = 0; i < data.length; i++) {
-			dataCopy[i] = data[i];
-		}
-		
-		mFFT.realForward(dataCopy);
-		
-		double[] fftCoeffs = new double[(dataCopy.length/2) - 1];
-
-		for (int i = 2; i < dataCopy.length; i += 2) { //skip the first two, they are total and # data or somthing
-			fftCoeffs[(i - 2) / 2] = Math.sqrt(Math.pow(dataCopy[i], 2)
-					+ Math.pow(dataCopy[i + 1], 2));
-		}
-		return fftCoeffs;
-	}
 	
 	public Double[] fftIntoDoubleObjects(double[] data) {
 		double[] dataCopy = new double[data.length];

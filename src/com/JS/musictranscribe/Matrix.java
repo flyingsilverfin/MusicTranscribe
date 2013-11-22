@@ -13,6 +13,8 @@ import android.util.Log;
  * m traditionally is rows 
  * n traditionally is columns
  * in loops used j for cycling down rows, and i for elements within a row
+ * 
+ * currently fails when trying to REF or RREF a matrix with all of the same element
  */
 
 public class Matrix {
@@ -45,6 +47,7 @@ public class Matrix {
 			col = j + shift; //to check columns, starting at j'th one
 			if (col == mWidth-1) { //reached end of matrix
 				reduceRow(j, col, record);
+				addToRecord(record, 0, j, 000); //insert the blank. Haven't implement a code for setAllBelowToZero, which is a remnant from older code anyway. Hoping this code works well enough without that
 				setAllBelowToZero(j);
 				break;
 			}
@@ -138,7 +141,7 @@ public class Matrix {
 		
 		Matrix result = new Matrix(mHeight, m.getWidth());
 		
-		int val;
+		double val;
 		
 		for (int j = 0; j < mHeight; j++) {
 			for (int i = 0; i < m.getWidth(); i++) {
@@ -147,8 +150,10 @@ public class Matrix {
 				
 				for (int k = 0; k < mWidth; k++) {
 					val += mMatrix[j][k] * m.getElem(k, i);
+
 				}
 				
+
 				result.writeElem(j, i, val);
 			}
 		}
@@ -195,15 +200,15 @@ public class Matrix {
 					int opRow = record.get(counter).intValue();
 					int c = 1; //counter for counter :)
 					for (int j = opRow + 1; j < mHeight; j++) {
-						
 						for (int k = 0; k < mWidth; k++) {
 							mMatrix[j][k] += mMatrix[opRow][k] * record.get(counter+c);
 						}
 						
-						//following is less efficient than above
+						//following is less efficient than above due to implementation
 						//addRowsInPlace(j, multRow(opRow, record.get(counter+c))); 
 						c++;
 					}
+					
 					counter += c; // (mHeight - opRow );
 				}
 				else {
@@ -245,12 +250,6 @@ public class Matrix {
 	 * Overloaded for record keeping
 	 */
 	private void reduceRowsBelow(int m, int colToReduceBy, ArrayList<Double> record) {
-		//still have to implement the record usage
-		
-	//	if (m == (mHeight - 1)) { //if its the last row, then return now. Not doing this causes an error in the addToRecord 
-																			//because there are no parameters following it
-	//		return;
-	//	}
 		addToRecord(record, 0, m, 000); //last param is just a blank
 		
 		//int loc = findFirstNonZeroIndexInRow(m); //unreliable!
@@ -506,7 +505,6 @@ public class Matrix {
 	
 	public void writeCol(int n, Double[] col) {
 		int h = mHeight;
-		Log.i(TAG,col.toString());
 		if (col.length != mHeight) {
 			Log.e(TAG,"Given column's height does not equal matrix's height, using minimum");
 			h = Math.min(mHeight, col.length);
@@ -606,6 +604,7 @@ public class Matrix {
 	
 	/*
 	 * get a copy of the matrix, as a Matrix object
+	 * NOT EFFICIENT (lots of extra objects created, directly copy for efficiency)
 	 */
 	public Matrix getCopy() {
 		Matrix copy = new Matrix(mHeight, mWidth);
@@ -619,7 +618,7 @@ public class Matrix {
 		Matrix transpose = new Matrix(mWidth, mHeight); //switch the height and width for transpose!
 		
 		for (int i = 0; i < mHeight; i++) {
-			for (int j = 0; j < mWidth; i++) {
+			for (int j = 0; j < mWidth; j++) {
 				transpose.writeElem(j, i, mMatrix[i][j]);
 			}
 		}

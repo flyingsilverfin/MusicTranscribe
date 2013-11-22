@@ -6,7 +6,7 @@
     <string name="welcome_text"> Welcome to the Music Transcription App. Currently under development for use with a piano.</string>
     <string name="library_button_text"> View your Library </string>
     <string name="goto_recording_button_text"> New Project </string>
-    <string name="random_matrix_button_text"> New Random Matrix and RREF </string>
+    <string name="random_matrix_button_text"> Experimental </string>
     <string name="submit_button">Submit</string>
     <string name="title_activity_graph">GraphActivity</string>
     <string name="title_activity_record">RecordActivity</string>

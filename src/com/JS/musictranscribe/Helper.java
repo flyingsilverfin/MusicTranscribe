@@ -2,7 +2,6 @@ package com.JS.musictranscribe;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
-import java.io.File;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -27,7 +26,7 @@ public class Helper {
 	public static final int EXTERNAL_BUFFER_TIME = EXTERNAL_BUFFER_SIZE*1000/SAMPLING_SPEED; //find actual time being measured based on above
 	
 	public static final String defaultNoteSpectraFile = "defaultNotes";
-	
+		
 	public static HashMap<Integer, Double[]> getNoteSpectraFromFile(Context context, String noteSpectraFileName) {
 		HashMap<Integer, Double[]> noteSpectraMap = new HashMap<Integer, Double[]>();
 		
@@ -66,6 +65,7 @@ public class Helper {
 			noteSpectraMap.put(key, vals);
 			s = file.readLine(); //either get next key or get null
 			while (s != null) {
+				vals = new Double[size]; //have to initialize new array since the map only references the arrays internally, doesn't store copies. If this isn't done, all the values will be the same array
 				key = Integer.parseInt(s);
 				for (int i = 0; i < size; i++) {
 					s = file.readLine();
@@ -209,7 +209,26 @@ public class Helper {
 	}
 	
 	
-	public double[] getFrequencyAxis(float lengthInMs, int num){
+	public static double[] fft(double[] data) {
+		double[] dataCopy = new double[data.length];
+		DoubleFFT_1D f = new DoubleFFT_1D(data.length);
+		for (int i = 0; i < data.length; i++) {
+			dataCopy[i] = data[i];
+		}
+		
+		f.realForward(dataCopy);
+		
+		double[] fftCoeffs = new double[(dataCopy.length/2) - 1];
+
+		for (int i = 2; i < dataCopy.length; i += 2) { //skip the first two, they are total and # data or somthing
+			fftCoeffs[(i - 2) / 2] = Math.sqrt(Math.pow(dataCopy[i], 2)
+					+ Math.pow(dataCopy[i + 1], 2));
+		}
+		return fftCoeffs;
+	}
+	
+	
+	public static double[] getFrequencyAxis(float lengthInMs, int num){
 		double[] frequencyAxis = new double[num];
 		frequencyAxis[0] = 1/lengthInMs; //base frequency
 		
@@ -233,6 +252,22 @@ public class Helper {
 	}
 	
 	public static void printArray(double[] array) {
+		for (int i = 0; i < array.length; i++) {
+			System.out.print(array[i]);
+			System.out.print(", ");
+		}
+		System.out.print("\n");
+	}
+	
+	public static void printArray(Integer[] array) {
+		for (int i = 0; i < array.length; i++) {
+			System.out.print(array[i]);
+			System.out.print(", ");
+		}
+		System.out.print("\n");
+	}
+	
+	public static void printArray(Double[] array) {
 		for (int i = 0; i < array.length; i++) {
 			System.out.print(array[i]);
 			System.out.print(", ");
