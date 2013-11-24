@@ -1,20 +1,20 @@
 package com.JS.musictranscribe;
 
-import com.dropbox.client2.DropboxAPI;
-import com.dropbox.client2.android.AndroidAuthSession;
-import com.dropbox.client2.session.AccessTokenPair;
-import com.dropbox.client2.session.AppKeyPair;
-import com.dropbox.client2.session.Session.AccessType;
-
 import android.app.Activity;
 import android.content.Intent;
-import android.content.SharedPreferences;
+import android.graphics.Color;
 import android.media.MediaRecorder.AudioSource;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.Menu;
 import android.view.View;
 import android.widget.Button;
+import android.widget.LinearLayout;
+
+import com.jjoe64.graphview.BarGraphView;
+import com.jjoe64.graphview.GraphView;
+import com.jjoe64.graphview.GraphView.GraphViewData;
+import com.jjoe64.graphview.GraphViewSeries;
 
 public class RecordActivity extends Activity {
 
@@ -31,6 +31,12 @@ public class RecordActivity extends Activity {
 	private Button mFinishRecordingButton;
 	private Button mGraphButton;
 	private AudioAnalyzer mAudioAnalyzer;
+	
+	private GraphView mGraphView;
+	private LinearLayout mGraphLayout;
+	private GraphViewSeries mGraphData;
+	private double mAmplitude;
+	private boolean mIsLiveGraphOn;
 
 	//DEBUG
 		private Button dGraphEveryCycleToggleButton;
@@ -73,7 +79,8 @@ public class RecordActivity extends Activity {
 			}
 		});
 		
-		
+		/*
+		 * Dropbox is disabled for now.
 		
 		dDBDataUploadToggleButton = (Button) findViewById(R.id.dDropbox_Upload_Button);
 		dDBDataUploadToggleButton.setEnabled(false); //only enable if DB is accessible
@@ -83,8 +90,24 @@ public class RecordActivity extends Activity {
 				toggleDBDataUpload();
 			}
 		});
+		
+		*/
 
-		 
+		
+		//set up graphView
+		mGraphView = new BarGraphView(this, "Amplitude");
+		mGraphView.setScalable(false);
+		mGraphView.setBackgroundColor(Color.WHITE);
+		mGraphView.setScrollable(false);
+		mGraphView.setScalable(false);
+		mGraphView.setManualYAxisBounds(1000,0);
+		mGraphLayout = (LinearLayout) findViewById(R.id.amplitude_graph);
+		mGraphData = new GraphViewSeries("Amplitude Data", null, new GraphViewData[] { new GraphViewData(0,0) });
+		mGraphView.addSeries(mGraphData);
+		
+		mGraphLayout.addView(mGraphView);
+		
+		
 		
 		mAudioAnalyzer = new AudioAnalyzer(AudioSource.MIC, Helper.SAMPLING_SPEED, 
 				true, true, Helper.EXTERNAL_BUFFER_SIZE, this); 
@@ -93,14 +116,13 @@ public class RecordActivity extends Activity {
 		
 		mIsDBLoggedIn = getIntent().getBooleanExtra("DBLoggedIn", false);
 		if (mIsDBLoggedIn) {
-			dDBDataUploadToggleButton.setEnabled(true);
+			//dDBDataUploadToggleButton.setEnabled(true);
 			mAudioAnalyzer.setDBLoggedIn(true);
 		}
 		else {
-			dDBDataUploadToggleButton.setEnabled(false);
+			//dDBDataUploadToggleButton.setEnabled(false);
 			mAudioAnalyzer.setDBLoggedIn(false);
 		}
-		
 	}
 	
 	// -----END onCreate
@@ -152,15 +174,18 @@ public class RecordActivity extends Activity {
 	private void toggleRecording() {
 		if (mIsFirstToggle) { //this only runs the first time
 			mIsRecordingPaused = false;
+			startLiveAmplitudeGraph();
 			mAudioAnalyzer.startRecording();
 			mIsFirstToggle = false;
 		}
 		else if (mIsRecordingPaused) {
 			mIsRecordingPaused = false;
+			startLiveAmplitudeGraph();
 			mAudioAnalyzer.resumeRecording();
 		}
 		else if (!mIsRecordingPaused) {
 			mIsRecordingPaused = true;
+			stopLiveAmplitudeGraph();
 			mAudioAnalyzer.pauseRecording();
 		}
 		mRecordingPausePlayButton.setText("paused: " +( mIsRecordingPaused ? "true" : "false"));
@@ -176,6 +201,38 @@ public class RecordActivity extends Activity {
 		toggleRecording();
 	}
 
+	private void startLiveAmplitudeGraph() {
+		mIsLiveGraphOn = true;
+		Log.i(TAG,"going to make bar graph!");
+		//would it be better to use an interrupt to do this? With boolean get to keep track of if its on or not, I think its better like this.
+		(new Thread() {
+			public void run() {
+				Log.i(TAG,"In run()");
+				while (mIsLiveGraphOn) {
+					try {
+						Log.i(TAG,"In try");
+						Thread.sleep(100);
+					} catch( InterruptedException e) { Log.d(TAG,e.getMessage());}
+					Log.i(TAG,"out of try, resetting Data");
+					
+					
+					runOnUiThread(new Runnable() {
+						@Override
+						public void run() {
+							mGraphData.resetData( new GraphViewData[] { 
+									new GraphViewData(0, mAudioAnalyzer.getCurrentAvAmplitude()),
+								});							
+						}
+					});
+					
+				}
+			}
+		}).start();
+	}
+	
+	private void stopLiveAmplitudeGraph() {
+		mIsLiveGraphOn = false;
+	}
 	
 	//this is separate because I suspect we will want to send them to editing and or postprocess all of it at this point
 	private void finishRecording() {

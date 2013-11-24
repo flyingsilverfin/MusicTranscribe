@@ -167,7 +167,10 @@ public class Matrix {
 	 */
 	public void modifyByRecord(ArrayList<Double> record) {
 		
-		record.remove(record.size()-1); //remove last element since there's nothing that follows, its an empty command
+		//record.remove(record.size()-1); //remove last element since there's nothing that follows, its an empty command
+			//don't do that since if using the same record multiple times it just shrinks!
+			//length accounted for in the while loop
+		
 		
 		int recordLen = record.size();
 		int counter = 0;
@@ -177,7 +180,7 @@ public class Matrix {
 		
 		boolean goingUpward = false;
 		
-		while (counter < recordLen) {
+		while (counter < (recordLen-1)) { //as opposed to removing the last one
 			command = record.get(counter);
 
 			if (command == prevCommand) { //there will be a command with no parameters (last one), immediately followed by same command (same row)
@@ -215,7 +218,6 @@ public class Matrix {
 					int opRow = record.get(counter).intValue();
 					int c = 1; //counter for counter :)
 					for (int j = opRow-1; j >= 0; j--) {
-						
 						for (int k = 0; k < mWidth; k++) {
 							mMatrix[j][k] += mMatrix[opRow][k] * record.get(counter+c);
 						}
@@ -635,6 +637,17 @@ public class Matrix {
 		return mWidth;
 	}	
 	
+	/*
+	 * Get Magnitude of a column (treating it as a vector)
+	 */
+	public double getColMagnitude(int col) {
+		double res = 0;
+		for (int i = 0; i < mHeight; i++) {
+			res += Math.pow(mMatrix[i][col],2);
+		}
+		res = Math.pow(res, 0.5);
+		return res;
+	}
 	
 	//-----Matrix printing-----
 	public void printMatrix() {
@@ -650,7 +663,15 @@ public class Matrix {
 	
 	public void printMatrixRow(int m) {
 		for (int i = 0; i < mWidth; i++) {
-			System.out.printf("%.010f",mMatrix[m][i]);
+			System.out.printf("%.010f", mMatrix[m][i]);
+			System.out.print(" ");
+		}
+		System.out.println();
+	}
+	
+	public void printCol(int n) {
+		for (int j = 0; j < mHeight; j++) {
+			System.out.printf("%.010f", mMatrix[j][n]);
 			System.out.print(" ");
 		}
 		System.out.println();

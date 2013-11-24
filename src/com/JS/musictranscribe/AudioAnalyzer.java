@@ -1,5 +1,9 @@
 package com.JS.musictranscribe;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
@@ -27,12 +31,17 @@ public class AudioAnalyzer extends Audio {
 
 	
 	private double[] mIntervalFreqData; //for fft data
-
 	private short[] mCompleteRawData; // to store the max 50 seconds
+	private double mAverageSampleAmplitude;
+	private Matrix mSampleMatrix;
+	private Matrix mDataTranspose;
+	private ArrayList<Double> mRecord;
 
 	
 	//library-based objects
 	private DoubleFFT_1D mFFT;
+	
+	
 	
 	
 	//Debug
@@ -52,7 +61,7 @@ public class AudioAnalyzer extends Audio {
 	
 		mCompleteRawData = new short[mMAX_NOTE_SECONDS * getSamplingSpeed()];
 
-		mIntervalFreqData = new double[externalBufferSize/2]; 
+		mIntervalFreqData = new double[(externalBufferSize/2) - 1]; 
 		mFFT = new DoubleFFT_1D(mExternalBufferSize);
 
 		Log.i(TAG,"\tinitializing runnables and threads");
@@ -64,8 +73,23 @@ public class AudioAnalyzer extends Audio {
 		mAnalyzerRunnable.setParallelThread(mReaderThread);
 
 		
-		Log.i(TAG, "Initializing dropbox API settings");
-		//actually done when RecordActivity calls setDBLoggedIn(t/f) -- this confusing/bad style I think
+		Log.i(TAG, "Getting data from file");
+		HashMap<Integer, Double[]> noteSpectraMap = Helper.getNoteSpectraFromFile(context.getApplicationContext(), "two_octaves");
+		Integer[] noteNums = noteSpectraMap.keySet().toArray(new Integer[1]);
+					
+		Log.i(TAG, "Building matrices and RREF");
+		Matrix dataMatrix = new Matrix(noteSpectraMap.get(noteNums[0]).length, noteNums.length); //map must have values of same length
+		Arrays.sort(noteNums);
+		Log.i(TAG,"Notes in ref data: ");
+		Helper.printArray(noteNums);
+		for (int i = 0; i < noteNums.length; i++) {
+			dataMatrix.writeCol(i, noteSpectraMap.get(noteNums[i]));
+		}
+		mDataTranspose = dataMatrix.getTranspose();
+		Matrix sqrMatrix = mDataTranspose.multOnLeftOf(dataMatrix);
+		mRecord = sqrMatrix.RREF();
+		
+		mSampleMatrix = new Matrix(mIntervalFreqData.length, 1);
 
 	}
 
@@ -129,18 +153,41 @@ public class AudioAnalyzer extends Audio {
 	}
 
 
+	@Override
+	/*Functionality from superclass:
+	* 	Records from microphone
+	* 	defaults into the mAudioData short array
+	* 	returns how many have been read
+	* Added:
+	* 	Updates mAverageSampleAmplitude as well
+	* Removed:
+	* 	No more logging how many data were read
+	*/
+	public int recordAudio() {
+		int n = mRecorder.read(mRawAudioData, 0, mRawAudioData.length); // copy out new data
+		mAverageSampleAmplitude = Helper.sumArrayInAbs(mRawAudioData)/n;
+		return n;
+	}
 	
 	/*
 	 * This is called after the FFT is run
 	 * 
 	 */
 	private void analyze() {
-				
-		if (isDBLoggedIn() && isDBDataUploadEnabled()) {
+		mSampleMatrix.writeCol(0, mIntervalFreqData);
+		Matrix copy = mDataTranspose.multOnLeftOf(mSampleMatrix);
+		copy.modifyByRecord(mRecord);
+		
+		Log.i(TAG,"SOLUTION: ");
+		copy.printCol(0);
+		
+	    /*
+     	if (isDBLoggedIn() && isDBDataUploadEnabled()) {
 			Log.i(TAG,"attempting to write file");
 			Helper_Dropbox.putFile("/sdcard/datafile"+dDropboxFileCounter+".txt", getIntervalFreqData(), mDBApi);
 			dDropboxFileCounter++;
-		}
+		} 
+		*/
 		
 		if (dGraphEveryCycle) {
 			pauseRecording(); //somehow this is pausing this thread (or something) too!!!
@@ -303,7 +350,7 @@ other random TODO's:
 			while (!mIsDone) {
 				while (!mIsRecordingPaused) { //for external interrupting
 					if (!mIsAnalysisDone) { //for parallel thread interrupting
-						updateIntervalFreqData();
+						updateIntervalFreqData(); //updates mIntervalFreqData
 
 						analyze();
 						mIsAnalysisDone = true;
@@ -389,5 +436,9 @@ other random TODO's:
 			return true;
 		}
 		return false;
+	}
+	
+	public double getCurrentAvAmplitude() {
+		return mAverageSampleAmplitude;
 	}
 }

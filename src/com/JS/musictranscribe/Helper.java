@@ -182,6 +182,37 @@ public class Helper {
 		}
 	}
 	
+	public static double sumArray(double[] arr) {
+		double res = 0;
+		for (int i = 0; i < arr.length; i++) {
+			res += arr[i];
+		}
+		return res;
+	}
+	
+	public static double sumArray(short[] arr) {
+		double res = 0;
+		for (int i = 0; i < arr.length; i++) {
+			res += arr[i];
+		}
+		return res;
+	}
+	
+	public static double sumArrayInAbs(double[] arr) {
+		double res = 0;
+		for (int i = 0; i < arr.length; i++) {
+			res += Math.abs(arr[i]);
+		}
+		return res;
+	}
+	
+	public static double sumArrayInAbs(short[] arr) {
+		double res = 0;
+		for (int i = 0; i < arr.length; i++) {
+			res += Math.abs(arr[i]);
+		}
+		return res;
+	}
 	
 	public static double[] averageArrays(double[][] data) { //must be a regularly shaped matrix (all same length)
 		double[] result = new double[data[0].length];

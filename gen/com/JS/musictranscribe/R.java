@@ -29,7 +29,7 @@ public final class R {
         public static final int Record_Buttons=0x7f08001c;
         public static final int Record_PausePlay_Button=0x7f08001d;
         public static final int action_settings=0x7f080021;
-        public static final int dDropbox_Upload_Button=0x7f080020;
+        public static final int amplitude_graph=0x7f080020;
         public static final int dGraph_Every_Cycle_Button=0x7f08001f;
         public static final int delete_all_private_files_button=0x7f08000c;
         public static final int disable_cont_graphing_button=0x7f080013;
