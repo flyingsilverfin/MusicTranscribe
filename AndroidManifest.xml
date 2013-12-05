@@ -62,12 +62,20 @@
                 <category android:name="android.intent.category.DEFAULT" />
             </intent-filter>
         </activity>
-
         <activity
             android:name="com.JS.musictranscribe.DatacollectActivity"
             android:label="@string/title_activity_datacollect"
             android:parentActivityName="com.JS.musictranscribe.MainActivity"
-            android:screenOrientation="landscape"  >
+            android:screenOrientation="landscape" >
+            <meta-data
+                android:name="android.support.PARENT_ACTIVITY"
+                android:value="com.JS.musictranscribe.MainActivity" />
+        </activity>
+        <activity
+            android:name="com.JS.musictranscribe.GraphicsActivity"
+            android:label="@string/title_activity_graphics"
+            android:parentActivityName="com.JS.musictranscribe.MainActivity"
+            android:screenOrientation="landscape" >
             <meta-data
                 android:name="android.support.PARENT_ACTIVITY"
                 android:value="com.JS.musictranscribe.MainActivity" />

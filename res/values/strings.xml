@@ -16,7 +16,7 @@
     <string name="dDropbox_upload_button_text">DB:false</string>
     <string name="title_activity_percent_data">PercentData</string>
     <string name="hello_world">Hello world!</string>
-    
+
     <!-- Data collect Activity -->
     <string name="title_activity_datacollect">Datacollect Activity</string>
     <string name="goto_datacollect_activity_button">Data Collection</string>
@@ -28,9 +28,12 @@
     <string name="start_new_map_button_text">Reset to new map</string>
     <string name="save_new_map_button_text">Write map to file</string>
     <string name="map_file_name_edittext_hint">Map Filename</string>
-  	<string name="load_note_map_button_text">Load this map</string>
-  	<string name="delete_all_private_files_button_text">Delete all files</string>
-    
-    <!--  Misc/reusable -->
-	<string name="one">1</string>
+    <string name="load_note_map_button_text">Load this map</string>
+    <string name="delete_all_private_files_button_text">Delete all files</string>
+
+    <!-- Misc/reusable -->
+    <string name="one">1</string>
+    <string name="title_activity_graphics">GraphicsActivity</string>
+    <string name="goto_graphics_button">Graphics</string>
+
 </resources>

@@ -28,6 +28,7 @@ public class MainActivity extends Activity {
 	private Button mLibraryButton;
 	private Button mDropboxLoginButton;
 	private Button mTestingButton;
+	private Button mGotoGraphicsButton;
 	
 	//Dropbox
 	private DropboxAPI<AndroidAuthSession> mDBApi; 
@@ -73,6 +74,16 @@ public class MainActivity extends Activity {
 			}
 		});
 		
+		mGotoGraphicsButton = (Button) findViewById(R.id.goto_graphics);
+		mGotoGraphicsButton.setOnClickListener(new View.OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				// TODO Auto-generated method stub
+				Intent intent = new Intent(MainActivity.this, GraphicsActivity.class);
+				startActivity(intent);
+			}
+		});
+				
 		mDropboxLoginButton = (Button) findViewById(R.id.dropbox_login_button);
 		mDropboxLoginButton.setOnClickListener(new View.OnClickListener() {
 			@Override

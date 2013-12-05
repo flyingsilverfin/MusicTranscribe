@@ -46,7 +46,11 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="@string/random_matrix_button_text" />
-    
 
+    <Button
+        android:id="@+id/goto_graphics"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="@string/goto_graphics_button" />
 
 </LinearLayout>
