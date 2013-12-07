@@ -6,11 +6,14 @@ import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Paint.Style;
 import android.os.Handler;
+import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 
 public class GraphicsSurfaceView extends SurfaceView implements SurfaceHolder.Callback{
 
+	private static final String TAG = "Graphics_Surface";
+	
 	private SurfaceHolder sh;
 	private final Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
 	private GraphicsThread thread;
@@ -20,8 +23,12 @@ public class GraphicsSurfaceView extends SurfaceView implements SurfaceHolder.Ca
 		super(context);
 		sh = getHolder();
 		sh.addCallback(this);
-		paint.setColor(Color.BLUE);
-		paint.setStyle(Style.FILL);
+		
+		//set Paint specs
+		paint.setColor(Color.BLACK);
+		paint.setStyle(Paint.Style.STROKE);
+		paint.setStrokeWidth((float)3);
+		
 		ctx = context;
 		setFocusable(true);
 	}
@@ -44,10 +51,6 @@ public class GraphicsSurfaceView extends SurfaceView implements SurfaceHolder.Ca
 
 	@Override
 	public void surfaceDestroyed(SurfaceHolder holder) {
-		killThread();
-	}
-	
-	public void killThread(){
 		boolean retry = true;
 		thread.setRunning(false);
 		while(retry){
@@ -55,7 +58,7 @@ public class GraphicsSurfaceView extends SurfaceView implements SurfaceHolder.Ca
 				thread.join();
 				retry = false;
 			} catch (InterruptedException e) {
-				
+				Log.i(TAG, "Failed to join thread");
 			}
 		}
 	}
@@ -64,13 +67,10 @@ public class GraphicsSurfaceView extends SurfaceView implements SurfaceHolder.Ca
 	class GraphicsThread extends Thread {
 		private int canvasWidth = 200;
 		private int canvasHeight = 400;
-		private static final int SPEED = 2;
+		private float cycle, cycle2, cycle3 = (float)0.3;
+		private float time = 0;
 		private boolean run = false;
-		
-		private float circleX;
-		private float circleY;
-		private float headingX;
-		private float headingY;
+
 		
 		public GraphicsThread(SurfaceHolder surfaceHolder, Context context, Handler handler){
 			sh = surfaceHolder;
@@ -80,10 +80,7 @@ public class GraphicsSurfaceView extends SurfaceView implements SurfaceHolder.Ca
 		
 		public void doStart(){
 			synchronized(sh){
-				circleX = canvasWidth/2;
-				circleY = canvasHeight/2;
-				headingX = (float) (-1 + (Math.random() * 2));
-				headingY = (float) (-1 + (Math.random() * 2));
+				//dont need this for now
 			}
 		}
 		
@@ -97,7 +94,7 @@ public class GraphicsSurfaceView extends SurfaceView implements SurfaceHolder.Ca
 					}
 				} finally {
 					if (c != null) {
-						sh.unlockCanvasAndPost(c);
+							sh.unlockCanvasAndPost(c);
 					}
 				}
 			}
@@ -116,11 +113,53 @@ public class GraphicsSurfaceView extends SurfaceView implements SurfaceHolder.Ca
 		}
 		
 		private void doDraw(Canvas canvas){
-			circleX = circleX + (headingX * SPEED);
-			circleY = circleY + (headingY * SPEED);
-			canvas.restore();
-			canvas.drawColor(Color.BLACK);
-			canvas.drawCircle(circleX, circleY, 50, paint);
+			try {
+				//if(runcycle)
+					setCycle();
+				canvas.restore(); //clears canvas
+				canvas.drawColor(Color.WHITE); //sets canvas background color
+				canvas.drawLine((float)(canvasWidth*(1./15)), (float)(canvasHeight*(.45)), (float)(canvasWidth*(14.0/15)), (float)(canvasHeight*(.45)), paint); //1st bar line
+				canvas.drawLine((float)(canvasWidth*(1./15)), (float)(canvasHeight*(.53)), (float)(canvasWidth*(14.0/15)), (float)(canvasHeight*(.53)), paint); //2nd bar line
+				canvas.drawLine((float)(canvasWidth*(1./15)), (float)(canvasHeight*(.61)), (float)(canvasWidth*(14.0/15)), (float)(canvasHeight*(.61)), paint); //3nd bar line
+				canvas.drawLine((float)(canvasWidth*(1./15)), (float)(canvasHeight*(.69)), (float)(canvasWidth*(14.0/15)), (float)(canvasHeight*(.69)), paint); //4nd bar line
+				canvas.drawLine((float)(canvasWidth*(1./15)), (float)(canvasHeight*(.77)), (float)(canvasWidth*(14.0/15)), (float)(canvasHeight*(.77)), paint); //5nd bar line
+				canvas.drawLine((float)(canvasWidth*(cycle)), (float)(canvasHeight*(.45)), (float)(canvasWidth*(cycle)), (float)(canvasHeight*(.77)), paint); //1st Vertical line
+				canvas.drawLine((float)(canvasWidth*(cycle2)), (float)(canvasHeight*(.45)), (float)(canvasWidth*(cycle2)), (float)(canvasHeight*(.77)), paint); //2nd vertical line
+				canvas.drawLine((float)(canvasWidth*(cycle3)), (float)(canvasHeight*(.45)), (float)(canvasWidth*(cycle3)), (float)(canvasHeight*(.77)), paint); //2nd vertical line
+
+				
+			} catch (Exception e) {
+				
+			}
+
+		}
+		
+		private void setCycle() throws InterruptedException{
+			if (cycle > (float)(1./15)){
+				cycle -= .005; //create movement
+			} else {
+				cycle = (float)(14./15); 
+			}
+			
+			if (cycle > (float)((14./15) - .3)){
+				cycle2 = cycle + (float)(-(13./15) + .3);
+				/**Log.i(TAG, "First cycle");
+				Log.i(TAG, Float.toString(cycle2));**/
+			} else {
+				cycle2 = cycle + (float)0.3;
+			}
+			
+			if (cycle2 > (float)((14./15) - .3)){
+				cycle3 = cycle2 + (float)(-(13./15) + .3);
+				/**Log.i(TAG, "First cycle");
+				Log.i(TAG, Float.toString(cycle2));**/
+			} else {
+				cycle3 = cycle2 + (float)0.3;
+			}
+			
+			thread.sleep(30); //creates "frames" of movement, about 33 fps, no need to use up all memory
+			time+=30; //for notes later
+			Log.i(TAG, "Slept");
 		}
 		
 	}

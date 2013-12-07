@@ -4,6 +4,7 @@ import android.os.Bundle;
 import android.app.Activity;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.RelativeLayout;
 import android.support.v4.app.NavUtils;
 import android.annotation.TargetApi;
 import android.os.Build;
@@ -16,10 +17,11 @@ public class GraphicsActivity extends Activity {
 		setContentView(R.layout.activity_graphics);
 		// Show the Up button in the action bar.
 		setupActionBar();
-		
+
 		//Set up the graphics canvas
+		
 		setContentView(new GraphicsSurfaceView(this));
-	
+		
 	}
 
 	/**
