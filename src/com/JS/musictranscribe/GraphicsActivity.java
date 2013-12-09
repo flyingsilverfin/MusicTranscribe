@@ -4,23 +4,50 @@ import android.os.Bundle;
 import android.app.Activity;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
+import android.view.ViewGroup;
+import android.view.WindowManager;
+import android.view.WindowManager.LayoutParams;
+import android.widget.Button;
 import android.widget.RelativeLayout;
 import android.support.v4.app.NavUtils;
 import android.annotation.TargetApi;
 import android.os.Build;
 
 public class GraphicsActivity extends Activity {
-
+	public boolean notemove = false;
+	private Button graphicsPlayButton;
+	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_graphics);
 		// Show the Up button in the action bar.
 		setupActionBar();
-
+		RelativeLayout graphicsLayout =(RelativeLayout)findViewById(R.id.graphicsLayout);
 		//Set up the graphics canvas
+		final GraphicsSurfaceView graphicsView = new GraphicsSurfaceView(this);
+		graphicsLayout.addView(graphicsView);
+		//setContentView(new GraphicsSurfaceView(this));
 		
-		setContentView(new GraphicsSurfaceView(this));
+		graphicsPlayButton = (Button) findViewById(R.id.graphicsActivityPlay);
+		graphicsPlayButton.setOnClickListener(new View.OnClickListener() {
+			
+			@Override
+			public void onClick(View v) {
+				if(notemove){
+					notemove = false;
+					graphicsView.noteMove(notemove);
+					graphicsPlayButton.setText("Play");
+				} else {
+					notemove = true;
+					graphicsView.noteMove(notemove);
+					graphicsPlayButton.setText("Pause");
+				}
+				
+			}
+		});
+			
 		
 	}
 

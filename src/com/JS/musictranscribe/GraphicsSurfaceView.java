@@ -1,10 +1,14 @@
 package com.JS.musictranscribe;
 
 import android.content.Context;
+import android.content.res.Resources;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Paint.Style;
+import android.graphics.drawable.Drawable;
 import android.os.Handler;
 import android.util.Log;
 import android.view.SurfaceHolder;
@@ -18,6 +22,9 @@ public class GraphicsSurfaceView extends SurfaceView implements SurfaceHolder.Ca
 	private final Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
 	private GraphicsThread thread;
 	private Context ctx;
+	private Bitmap note1;
+	private boolean notemove = false;
+	
 	
 	public GraphicsSurfaceView(Context context) {
 		super(context);
@@ -31,6 +38,11 @@ public class GraphicsSurfaceView extends SurfaceView implements SurfaceHolder.Ca
 		
 		ctx = context;
 		setFocusable(true);
+		
+		Resources res = ctx.getResources();
+		note1 = BitmapFactory.decodeResource(res, R.drawable.note1);
+		
+		//Drawable note1 = res.getDrawable(R.drawable.note1);
 	}
 	
 	public GraphicsThread getThread(){
@@ -63,11 +75,16 @@ public class GraphicsSurfaceView extends SurfaceView implements SurfaceHolder.Ca
 		}
 	}
 	
+	public void noteMove(boolean move){
+		notemove = move;
+	}
+	
 	//Draw Canvas using another thread to get off of main UI thread
 	class GraphicsThread extends Thread {
 		private int canvasWidth = 200;
 		private int canvasHeight = 400;
 		private float cycle, cycle2, cycle3 = (float)0.3;
+		private float noterun = (float)0.5;
 		private float time = 0;
 		private boolean run = false;
 
@@ -76,6 +93,10 @@ public class GraphicsSurfaceView extends SurfaceView implements SurfaceHolder.Ca
 			sh = surfaceHolder;
 			handler = handler;
 			ctx = context;
+			try {
+				setCycle();
+			} catch (InterruptedException e) {
+			}
 		}
 		
 		public void doStart(){
@@ -114,7 +135,7 @@ public class GraphicsSurfaceView extends SurfaceView implements SurfaceHolder.Ca
 		
 		private void doDraw(Canvas canvas){
 			try {
-				//if(runcycle)
+				if(notemove)
 					setCycle();
 				canvas.restore(); //clears canvas
 				canvas.drawColor(Color.WHITE); //sets canvas background color
@@ -125,8 +146,8 @@ public class GraphicsSurfaceView extends SurfaceView implements SurfaceHolder.Ca
 				canvas.drawLine((float)(canvasWidth*(1./15)), (float)(canvasHeight*(.77)), (float)(canvasWidth*(14.0/15)), (float)(canvasHeight*(.77)), paint); //5nd bar line
 				canvas.drawLine((float)(canvasWidth*(cycle)), (float)(canvasHeight*(.45)), (float)(canvasWidth*(cycle)), (float)(canvasHeight*(.77)), paint); //1st Vertical line
 				canvas.drawLine((float)(canvasWidth*(cycle2)), (float)(canvasHeight*(.45)), (float)(canvasWidth*(cycle2)), (float)(canvasHeight*(.77)), paint); //2nd vertical line
-				canvas.drawLine((float)(canvasWidth*(cycle3)), (float)(canvasHeight*(.45)), (float)(canvasWidth*(cycle3)), (float)(canvasHeight*(.77)), paint); //2nd vertical line
-
+				canvas.drawLine((float)(canvasWidth*(cycle3)), (float)(canvasHeight*(.45)), (float)(canvasWidth*(cycle3)), (float)(canvasHeight*(.77)), paint); //3nd vertical line
+				canvas.drawBitmap(note1, (float)(canvasWidth*(noterun)), (float)(canvasHeight*(.525)), paint);
 				
 			} catch (Exception e) {
 				
@@ -135,27 +156,26 @@ public class GraphicsSurfaceView extends SurfaceView implements SurfaceHolder.Ca
 		}
 		
 		private void setCycle() throws InterruptedException{
-			if (cycle > (float)(1./15)){
+			if (noterun > (1./15))
+				noterun -= .005;
+			else
+				noterun = (float)(14./15);
+			
+			if (cycle > (float)(1./15))
 				cycle -= .005; //create movement
-			} else {
+			else
 				cycle = (float)(14./15); 
-			}
 			
-			if (cycle > (float)((14./15) - .3)){
+			if (cycle > (float)((14./15) - .3))
 				cycle2 = cycle + (float)(-(13./15) + .3);
-				/**Log.i(TAG, "First cycle");
-				Log.i(TAG, Float.toString(cycle2));**/
-			} else {
+			else 
 				cycle2 = cycle + (float)0.3;
-			}
 			
-			if (cycle2 > (float)((14./15) - .3)){
+			
+			if (cycle2 > (float)((14./15) - .3))
 				cycle3 = cycle2 + (float)(-(13./15) + .3);
-				/**Log.i(TAG, "First cycle");
-				Log.i(TAG, Float.toString(cycle2));**/
-			} else {
+			else
 				cycle3 = cycle2 + (float)0.3;
-			}
 			
 			thread.sleep(30); //creates "frames" of movement, about 33 fps, no need to use up all memory
 			time+=30; //for notes later
