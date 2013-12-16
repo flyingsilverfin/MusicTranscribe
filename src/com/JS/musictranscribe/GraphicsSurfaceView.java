@@ -137,7 +137,7 @@ public class GraphicsSurfaceView extends SurfaceView implements SurfaceHolder.Ca
 			try {
 				if(notemove)
 					setCycle();
-				canvas.restore(); //clears canvas
+				//canvas.restore(); //clears canvas, currently isnt working so commented
 				canvas.drawColor(Color.WHITE); //sets canvas background color
 				canvas.drawLine((float)(canvasWidth*(1./15)), (float)(canvasHeight*(.45)), (float)(canvasWidth*(14.0/15)), (float)(canvasHeight*(.45)), paint); //1st bar line
 				canvas.drawLine((float)(canvasWidth*(1./15)), (float)(canvasHeight*(.53)), (float)(canvasWidth*(14.0/15)), (float)(canvasHeight*(.53)), paint); //2nd bar line
@@ -148,7 +148,6 @@ public class GraphicsSurfaceView extends SurfaceView implements SurfaceHolder.Ca
 				canvas.drawLine((float)(canvasWidth*(cycle2)), (float)(canvasHeight*(.45)), (float)(canvasWidth*(cycle2)), (float)(canvasHeight*(.77)), paint); //2nd vertical line
 				canvas.drawLine((float)(canvasWidth*(cycle3)), (float)(canvasHeight*(.45)), (float)(canvasWidth*(cycle3)), (float)(canvasHeight*(.77)), paint); //3nd vertical line
 				canvas.drawBitmap(note1, (float)(canvasWidth*(noterun)), (float)(canvasHeight*(.525)), paint);
-				
 			} catch (Exception e) {
 				
 			}
@@ -177,7 +176,7 @@ public class GraphicsSurfaceView extends SurfaceView implements SurfaceHolder.Ca
 			else
 				cycle3 = cycle2 + (float)0.3;
 			
-			thread.sleep(30); //creates "frames" of movement, about 33 fps, no need to use up all memory
+			thread.sleep(40); //creates "frames" of movement, about 33 fps, no need to use up all memory
 			time+=30; //for notes later
 			Log.i(TAG, "Slept");
 		}
