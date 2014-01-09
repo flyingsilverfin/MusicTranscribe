@@ -53,8 +53,8 @@ public class DatacollectActivity extends Activity {
 	
 	private EditText mLoadNoteMapEditText;
 	private Button mLoadNewMapButton;
-	
-	private Button mDeleteAllFiles;
+	private Button mListAllFilesButton;
+	private Button mDeleteAllFilesButton;
 	
 	
 	private AudioCollector mAudioCollector;
@@ -257,8 +257,20 @@ public class DatacollectActivity extends Activity {
 			}
 		});
 		
-		mDeleteAllFiles = (Button) findViewById(R.id.delete_all_private_files_button);
-		mDeleteAllFiles.setOnClickListener(new View.OnClickListener() {
+		mListAllFilesButton = (Button) findViewById(R.id.list_all_private_files_button);
+		mListAllFilesButton.setOnClickListener(new View.OnClickListener() {
+			
+			@Override
+			public void onClick(View v) {
+				String[] files = Helper.listAllPrivFiles(getApplicationContext());
+				String f = Helper.join(files,", ");
+				Log.i(TAG, "Private files: " + f);
+				mStatusTextView.setText(f);
+			}
+		});
+		
+		mDeleteAllFilesButton = (Button) findViewById(R.id.delete_all_private_files_button);
+		mDeleteAllFilesButton.setOnClickListener(new View.OnClickListener() {
 			
 			@Override
 			public void onClick(View v) {
@@ -299,7 +311,7 @@ public class DatacollectActivity extends Activity {
 		mLoadNoteMapEditText.setEnabled(false);
 		mLoadNewMapButton.setEnabled(false);
 		
-		mDeleteAllFiles.setEnabled(false);
+		mDeleteAllFilesButton.setEnabled(false);
 		
 	}
 	
@@ -320,7 +332,7 @@ public class DatacollectActivity extends Activity {
 		mLoadNoteMapEditText.setEnabled(true);
 		mLoadNewMapButton.setEnabled(true);
 		
-		mDeleteAllFiles.setEnabled(true);
+		mDeleteAllFilesButton.setEnabled(true);
 		
 	}
 	

@@ -26,7 +26,9 @@ public class Helper {
 	public static final int EXTERNAL_BUFFER_TIME = EXTERNAL_BUFFER_SIZE*1000/SAMPLING_SPEED; //find actual time being measured based on above
 	
 	public static final String defaultNoteSpectraFile = "defaultNotes";
-		
+	
+	
+	//------------------ File and Data Storage Functions ------------------
 	public static HashMap<Integer, Double[]> getNoteSpectraFromFile(Context context, String noteSpectraFileName) {
 		HashMap<Integer, Double[]> noteSpectraMap = new HashMap<Integer, Double[]>();
 		
@@ -126,6 +128,11 @@ public class Helper {
 		file.close();
 	}
 	
+	public static String[] listAllPrivFiles(Context context) {
+		String[] files = context.fileList();
+		return files;
+	}
+	
 	public static void deleteAllPrivFiles(Context context) {
 		String[] files =  context.fileList();
 		
@@ -136,6 +143,9 @@ public class Helper {
 			context.deleteFile(file);
 		}
 	}
+	
+	
+	//------------------ Math Functions ------------------
 	
 	public static int nextLowerPowerOf2(int num) {
 		int r = 1; 
@@ -168,6 +178,19 @@ public class Helper {
 		return lowest;
 	}	
 	
+	//------------------ String Functions ------------------
+	
+	public static String join(String[] s, String glue) {
+		String result = "";
+		for (int i = 0; i < s.length-1; i++) {
+			result += s[i];
+			result += glue;
+		}
+		result += s[s.length-1];
+		return result;
+	}
+	
+	//------------------ List Functions ------------------
 	
 	public static int findInList(List<String> l, String toFind) {
 		return l.indexOf(toFind);
@@ -181,6 +204,9 @@ public class Helper {
 			return true;
 		}
 	}
+	
+	
+	//------------------ Array Operations ------------------
 	
 	public static double sumArray(double[] arr) {
 		double res = 0;
@@ -240,6 +266,9 @@ public class Helper {
 	}
 	
 	
+	
+	//------------------ Audio Functions ------------------
+
 	public static double[] fft(double[] data) {
 		double[] dataCopy = new double[data.length];
 		DoubleFFT_1D f = new DoubleFFT_1D(data.length);
@@ -270,6 +299,8 @@ public class Helper {
 		return frequencyAxis;
 	}
 	
+	
+	//------------------ Matrix Functions ------------------
 	
 	public static  void printMatrix(double[][] matrix) {
 		for (int j = 0; j < matrix.length; j++) {
