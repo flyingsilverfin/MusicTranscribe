@@ -7,11 +7,14 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.OutputStreamWriter;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import android.content.Context;
+import android.content.SharedPreferences;
+import android.content.SharedPreferences.Editor;
 import android.util.Log;
 
 public class Helper {
@@ -26,6 +29,8 @@ public class Helper {
 	public static final int EXTERNAL_BUFFER_TIME = EXTERNAL_BUFFER_SIZE*1000/SAMPLING_SPEED; //find actual time being measured based on above
 	
 	public static final String defaultNoteSpectraFile = "defaultNotes";
+	
+	public static final ArrayList<String> protectedFiles = new ArrayList<String>(Arrays.asList("default", "preferences"));
 	
 	
 	//------------------ File and Data Storage Functions ------------------
@@ -128,22 +133,83 @@ public class Helper {
 		file.close();
 	}
 	
-	public static String[] listAllPrivFiles(Context context) {
+	public static ArrayList<ListElement> getFileListElements(Context context) {
+		ArrayList<ListElement> files = new ArrayList<ListElement>();
+		for (String s : getFileListAsArray(context)) {
+			if (s.equals(getStringPref("checkedElement", context))) {
+				files.add(new ListElement(s, true));
+			}
+			else {
+				files.add(new ListElement(s, false));
+			}
+		}
+		
+		return files;		
+	}
+	
+	public static String[] getFileListAsArray(Context context) {
 		String[] files = context.fileList();
 		return files;
+	}
+	
+	public static ArrayList<String> getFileList(Context context) {
+		return new ArrayList(Arrays.asList(getFileListAsArray(context)));
 	}
 	
 	public static void deleteAllPrivFiles(Context context) {
 		String[] files =  context.fileList();
 		
 		for (String file : files) {
-			if (file.equals("default")) { //default file should not be deleted
+			if (listHas(protectedFiles, file)) { //default file should not be deleted
 				continue;
 			}
 			context.deleteFile(file);
 		}
 	}
 	
+	public static String getStringPref(String key, Context context) {
+		SharedPreferences prefs = context.getSharedPreferences("com.JS.musictranscribe", Context.MODE_PRIVATE);
+		return prefs.getString(key, null);
+	}
+	
+	public static boolean getBoolPref(String key, Context context) {
+		SharedPreferences prefs = context.getSharedPreferences("com.JS.musictranscribe", Context.MODE_PRIVATE);
+		return prefs.getBoolean(key, false);
+	}
+	
+	public static int getIntPref(String key, Context context) {
+		SharedPreferences prefs = context.getSharedPreferences("com.JS.musictranscribe", Context.MODE_PRIVATE);
+		return prefs.getInt(key, -1);
+	}
+	
+	public static float getFloatPref(String key, Context context) {
+		SharedPreferences prefs = context.getSharedPreferences("com.JS.musictranscribe", Context.MODE_PRIVATE);
+		return prefs.getFloat(key, -1);
+	}
+	
+	
+	public static void setStringPref(String key, String value, Context context) {
+		Editor editor = context.getSharedPreferences("com.JS.musictranscripe", Context.MODE_PRIVATE).edit();
+		editor.putString(key,  value);
+	}
+	
+	public static void setBoolPref(String key, Boolean value, Context context) {
+		Editor editor = context.getSharedPreferences("com.JS.musictranscripe", Context.MODE_PRIVATE).edit();
+		editor.putBoolean(key,  value);
+	}
+	
+	public static void setIntPref(String key, int value, Context context) {
+		Editor editor = context.getSharedPreferences("com.JS.musictranscripe", Context.MODE_PRIVATE).edit();
+		editor.putInt(key,  value);
+	}
+	
+	public static void setFloatPref(String key, float value, Context context) {
+		Editor editor = context.getSharedPreferences("com.JS.musictranscripe", Context.MODE_PRIVATE).edit();
+		editor.putFloat(key,  value);
+	}
+
+	
+
 	
 	//------------------ Math Functions ------------------
 	

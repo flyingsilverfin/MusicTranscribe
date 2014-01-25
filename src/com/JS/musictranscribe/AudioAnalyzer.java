@@ -5,6 +5,8 @@ import java.util.Arrays;
 import java.util.HashMap;
 
 import android.app.Activity;
+import android.app.FragmentManager;
+import android.app.FragmentTransaction;
 import android.content.Context;
 import android.content.Intent;
 import android.util.Log;
@@ -37,11 +39,11 @@ public class AudioAnalyzer extends Audio {
 	private Matrix mDataTranspose;
 	private ArrayList<Double> mRecord;
 
+	//data file name to use
+	private String mNoteMapDataFile;
 	
 	//library-based objects
 	private DoubleFFT_1D mFFT;
-	
-	
 	
 	
 	//Debug
@@ -54,11 +56,14 @@ public class AudioAnalyzer extends Audio {
 
 	
 	//constructor
-	public AudioAnalyzer(int audioSource, int samplingSpeed, boolean isMonoFormat, boolean is16BitFormat, int externalBufferSize, Context context ) {
+	public AudioAnalyzer(int audioSource, int samplingSpeed, boolean isMonoFormat, boolean is16BitFormat, int externalBufferSize, Context context, String mapFileName ) {
 
 		super(audioSource,samplingSpeed, isMonoFormat, is16BitFormat, externalBufferSize, context);
 		
-	
+		if (mapFileName == null) {
+			Log.e(TAG,"No file name");
+			return;
+		}
 		mCompleteRawData = new short[mMAX_NOTE_SECONDS * getSamplingSpeed()];
 
 		mIntervalFreqData = new double[(externalBufferSize/2) - 1]; 
@@ -74,13 +79,16 @@ public class AudioAnalyzer extends Audio {
 
 		
 		Log.i(TAG, "Getting data from file");
-		HashMap<Integer, Double[]> noteSpectraMap = Helper.getNoteSpectraFromFile(context.getApplicationContext(), "two_octaves");
+
+		mNoteMapDataFile = mapFileName;
+		
+		HashMap<Integer, Double[]> noteSpectraMap = Helper.getNoteSpectraFromFile(context.getApplicationContext(), mNoteMapDataFile);
 		Integer[] noteNums = noteSpectraMap.keySet().toArray(new Integer[1]);
 					
 		Log.i(TAG, "Building matrices and RREF");
 		Matrix dataMatrix = new Matrix(noteSpectraMap.get(noteNums[0]).length, noteNums.length); //map must have values of same length
 		Arrays.sort(noteNums);
-		Log.i(TAG,"Notes in ref data: ");
+		Log.i(TAG,"Notes in reference data: ");
 		Helper.printArray(noteNums);
 		for (int i = 0; i < noteNums.length; i++) {
 			dataMatrix.writeCol(i, noteSpectraMap.get(noteNums[i]));
@@ -90,6 +98,8 @@ public class AudioAnalyzer extends Audio {
 		mRecord = sqrMatrix.RREF();
 		
 		mSampleMatrix = new Matrix(mIntervalFreqData.length, 1);
+		
+
 
 	}
 
@@ -440,5 +450,38 @@ other random TODO's:
 	
 	public double getCurrentAvAmplitude() {
 		return mAverageSampleAmplitude;
+	}
+	
+	public String getDataFileInUse() {
+		return mNoteMapDataFile;
+	}
+	
+	public void setNoteMapDatFile(String filename, Context context) {
+		
+		if (!isThreadingPaused()) {
+			Log.i(TAG,"Pausing recording. Having to do this is bad coding. Activity shouldn't be allowing to change reference data in the middle of recording... (unless this is a new feature)");
+			pauseRecording();
+		}
+		mNoteMapDataFile = filename;
+		
+		HashMap<Integer, Double[]> noteSpectraMap = Helper.getNoteSpectraFromFile(context.getApplicationContext(), mNoteMapDataFile);
+		Integer[] noteNums = noteSpectraMap.keySet().toArray(new Integer[1]);
+					
+		Log.i(TAG, "Rebuilding matrices and RREF");
+		Matrix dataMatrix = new Matrix(noteSpectraMap.get(noteNums[0]).length, noteNums.length); //map must have values of same length
+		Arrays.sort(noteNums);
+		Log.i(TAG,"Notes in reference data: ");
+		Helper.printArray(noteNums);
+		for (int i = 0; i < noteNums.length; i++) {
+			dataMatrix.writeCol(i, noteSpectraMap.get(noteNums[i]));
+		}
+		mDataTranspose = dataMatrix.getTranspose();
+		Matrix sqrMatrix = mDataTranspose.multOnLeftOf(dataMatrix);
+		mRecord = sqrMatrix.RREF();
+		
+		mSampleMatrix = new Matrix(mIntervalFreqData.length, 1);
+		
+		Log.i(TAG,"Ready to resume");
+		
 	}
 }

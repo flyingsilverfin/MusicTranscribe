@@ -1,0 +1,60 @@
+package com.JS.musictranscribe;
+
+import java.util.ArrayList;
+
+import android.content.Context;
+import android.util.Log;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
+import android.widget.ArrayAdapter;
+import android.widget.CheckBox;
+import android.widget.TextView;
+
+public class ListElementAdapter extends ArrayAdapter<ListElement> {
+
+	private static final String TAG = "ListElementAdapter";
+	private Context mContext;
+	private int mLayoutResId;
+	private ArrayList<ListElement> mElements;
+	private ListElement mSelectedElement;
+
+	public ListElementAdapter(Context context, int layoutResId,
+			ArrayList<ListElement> elements, ListElement selectedListElement) {
+		super(context, layoutResId, elements);
+		mContext = context;
+		mLayoutResId = layoutResId;
+		mElements = elements;
+		mSelectedElement = selectedListElement;
+	}
+
+	@Override
+	public View getView(final int position, View convertView, ViewGroup parent) { //need final int for mElements.get(position)
+		LayoutInflater inflater = (LayoutInflater) mContext.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+		View rowView = inflater.inflate(mLayoutResId, parent, false);
+		final CheckBox checkbox = (CheckBox) rowView.findViewById(R.id.element_checkbox);
+		checkbox.setChecked(mElements.get(position).isChecked());
+		TextView title = (TextView) rowView.findViewById(R.id.element_title);
+		title.setText(mElements.get(position).getTitle());
+
+		rowView.setOnClickListener(new View.OnClickListener() {
+
+			@Override
+			public void onClick(View v) {
+				Log.i(TAG, "Item Clicked!");
+				mElements.get(position).setChecked(true);
+				//uncheck previously checked ListElement
+				if (mSelectedElement != null) { //would be null the first time around
+					mSelectedElement.setChecked(false);
+				}
+				//set the tracker variable to the new checked ListElement
+				mSelectedElement = mElements.get(position);
+				//update the preference for persistence
+				Helper.setStringPref("activeDataFile", mSelectedElement.getTitle(), getContext());
+				notifyDataSetChanged(); //somehow this detects if the checkbox has changed. keeping a reference to checkbox above alive? No idea...
+			}
+		});
+		return rowView;
+	}
+
+}

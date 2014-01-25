@@ -1,6 +1,8 @@
 package com.JS.musictranscribe;
 
 import android.app.Activity;
+import android.app.FragmentManager;
+import android.app.FragmentTransaction;
 import android.content.Intent;
 import android.graphics.Color;
 import android.media.MediaRecorder.AudioSource;
@@ -37,6 +39,9 @@ public class RecordActivity extends Activity {
 	private GraphViewSeries mGraphData;
 	private double mAmplitude;
 	private boolean mIsLiveGraphOn;
+	
+	//list selection fragment
+	private MyListFragment mListFragment;
 
 	//DEBUG
 		private Button dGraphEveryCycleToggleButton;
@@ -107,12 +112,25 @@ public class RecordActivity extends Activity {
 		
 		mGraphLayout.addView(mGraphView);
 		
-		
-		
+		//set up List Fragment for later use
+		mListFragment = new MyListFragment();
+		//check if there's an active file, otherwise can't do anything
+		String activeFile = Helper.getStringPref("activeDataFile", getApplicationContext());
+		if (activeFile == null) {
+			if (!mListFragment.isVisible()) {
+				Log.i(TAG, "starting list fragment");
+				FragmentManager fragmentManager = getFragmentManager();
+				FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+				fragmentTransaction.add(R.id.empty_fragment, mListFragment);
+				fragmentTransaction.addToBackStack(null);
+				fragmentTransaction.commit();
+			}
+		}
+		//update reference
+		activeFile = Helper.getStringPref("activeDataFile", getApplicationContext());
 		mAudioAnalyzer = new AudioAnalyzer(AudioSource.MIC, Helper.SAMPLING_SPEED, 
-				true, true, Helper.EXTERNAL_BUFFER_SIZE, this); 
+				true, true, Helper.EXTERNAL_BUFFER_SIZE, this, activeFile);  //the constructor also has a check to make sure there's a valid file
 				//isMono and is16Bit = true, this = context to pass in for graphing activity source
-
 		
 		mIsDBLoggedIn = getIntent().getBooleanExtra("DBLoggedIn", false);
 		if (mIsDBLoggedIn) {
@@ -123,6 +141,10 @@ public class RecordActivity extends Activity {
 			//dDBDataUploadToggleButton.setEnabled(false);
 			mAudioAnalyzer.setDBLoggedIn(false);
 		}
+		
+		
+		
+		
 	}
 	
 	// -----END onCreate
@@ -236,6 +258,7 @@ public class RecordActivity extends Activity {
 	
 	//this is separate because I suspect we will want to send them to editing and or postprocess all of it at this point
 	private void finishRecording() {
+		stopLiveAmplitudeGraph();
 		if (mIsRecordingDone) {
 		}
 		else if (!mIsRecordingDone) {

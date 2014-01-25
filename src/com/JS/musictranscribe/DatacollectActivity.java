@@ -4,6 +4,9 @@ import java.util.HashMap;
 
 import android.annotation.TargetApi;
 import android.app.Activity;
+import android.app.Fragment;
+import android.app.FragmentManager;
+import android.app.FragmentTransaction;
 import android.media.MediaRecorder.AudioSource;
 import android.os.Build;
 import android.os.Bundle;
@@ -54,8 +57,9 @@ public class DatacollectActivity extends Activity {
 	private EditText mLoadNoteMapEditText;
 	private Button mLoadNewMapButton;
 	private Button mListAllFilesButton;
-	private Button mDeleteAllFilesButton;
 	
+	private MyListFragment mListFragment;
+	private boolean mIsFragmentExistent;
 	
 	private AudioCollector mAudioCollector;
 	
@@ -73,7 +77,9 @@ public class DatacollectActivity extends Activity {
 		mNoteSpectraMap = new HashMap<Integer, Double[]>();
 		mNumSamplesForThisMap = -1;
 		
-		
+		/*
+		 * [older] Button to record n samples as given by below EditText
+		 */
 		mNumRecordingsEditText = (EditText) findViewById(R.id.num_recordings_edittext);
 		mStartNRecordingsButton = (Button) findViewById(R.id.submit_n_recordings_button);
 		mStartNRecordingsButton.setOnClickListener(new View.OnClickListener() {
@@ -90,6 +96,9 @@ public class DatacollectActivity extends Activity {
 			}
 		});
 		
+		/*
+		 * [older] Button to record for n seconds as given in below EditText
+		 */
 		mTimedRecordingEditText = (EditText) findViewById(R.id.recording_time_edittext);
 		mStartTimedRecordingButton = (Button) findViewById(R.id.submit_time_recording_button);
 		mStartTimedRecordingButton.setOnClickListener(new View.OnClickListener() {
@@ -108,7 +117,9 @@ public class DatacollectActivity extends Activity {
 			}
 		});
 		
-		
+		/*
+		 * Button to initialize a fresh HashMap
+		 */
 		mStartNewMapButton = (Button) findViewById(R.id.start_new_map_button);
 		mStartNewMapButton.setOnClickListener(new View.OnClickListener() {
 			
@@ -122,6 +133,9 @@ public class DatacollectActivity extends Activity {
 		});
 		
 		
+		/*
+		 * Button to save the current HashMap with the given name
+		 */
 		mNewNoteMapNameEditText = (EditText) findViewById(R.id.new_note_map_name_edittext);
 		mSaveNewMapButton = (Button) findViewById(R.id.save_new_map_button);
 		mSaveNewMapButton.setOnClickListener(new View.OnClickListener() {
@@ -153,10 +167,13 @@ public class DatacollectActivity extends Activity {
 		});
 		
 		
+		mStatusTextView = (TextView) findViewById(R.id.status_textview);
+
+		/*
+		 * Button to record data for the note given in below EditText
+		 */
 		mNoteNumEditText = (EditText) findViewById(R.id.note_num_edittext);
 		mGetNoteDataButton = (Button) findViewById(R.id.get_note_data_button);
-		mStatusTextView = (TextView) findViewById(R.id.status_textview);
-		
 		mGetNoteDataButton.setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View v) {
@@ -237,52 +254,37 @@ public class DatacollectActivity extends Activity {
 			}
 		});
 		
-		mLoadNoteMapEditText = (EditText) findViewById(R.id.load_note_map_edittext);
-		mLoadNewMapButton = (Button) findViewById(R.id.load_note_map_button);
-		mLoadNewMapButton.setOnClickListener(new View.OnClickListener() {
-			
-			@Override
-			public void onClick(View v) {
-				String fileName;
-				fileName = mLoadNoteMapEditText.getText().toString();
-				if (fileName.length() == 0) {
-					Log.e(TAG,"no name entered!");
-					status("Enter a name!");
-					return;
-				}
-				
-				mNoteSpectraMap = Helper.getNoteSpectraFromFile(getApplicationContext(), fileName);
-				status("Retrieved " + mNoteSpectraMap.keySet().size() + " key/data sets from file " + fileName);
-				Log.i(TAG, "Keys/data sets retrieved: " + mNoteSpectraMap.keySet().toString());
-			}
-		});
 		
+		/*
+		 * Button to List all files in the private storage
+		 */
 		mListAllFilesButton = (Button) findViewById(R.id.list_all_private_files_button);
 		mListAllFilesButton.setOnClickListener(new View.OnClickListener() {
 			
 			@Override
 			public void onClick(View v) {
-				String[] files = Helper.listAllPrivFiles(getApplicationContext());
-				String f = Helper.join(files,", ");
-				Log.i(TAG, "Private files: " + f);
-				mStatusTextView.setText(f);
+
+				if (!mListFragment.isVisible()) {
+					Log.i(TAG, "starting list fragment...");
+					FragmentManager fragmentManager = getFragmentManager();
+					FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+					fragmentTransaction.add(R.id.empty_fragment, mListFragment);
+					fragmentTransaction.addToBackStack(null);
+					fragmentTransaction.commit();
+				}
+				
 			}
 		});
 		
-		mDeleteAllFilesButton = (Button) findViewById(R.id.delete_all_private_files_button);
-		mDeleteAllFilesButton.setOnClickListener(new View.OnClickListener() {
-			
-			@Override
-			public void onClick(View v) {
-				Helper.deleteAllPrivFiles(getApplicationContext());
-				status("Deleted all data files!");
-			}
-		});
-		
-		
+
+		//initialize new AudioCollector
 		mAudioCollector = new AudioCollector(AudioSource.MIC, Helper.SAMPLING_SPEED, 
 				true, true, Helper.EXTERNAL_BUFFER_SIZE, this);
 		
+		
+		//initialize List Fragment
+		mListFragment = new MyListFragment();
+
 		
 		mIsDBLoggedIn = getIntent().getBooleanExtra("DBLoggedIn", false);
 
@@ -311,7 +313,6 @@ public class DatacollectActivity extends Activity {
 		mLoadNoteMapEditText.setEnabled(false);
 		mLoadNewMapButton.setEnabled(false);
 		
-		mDeleteAllFilesButton.setEnabled(false);
 		
 	}
 	
@@ -332,7 +333,6 @@ public class DatacollectActivity extends Activity {
 		mLoadNoteMapEditText.setEnabled(true);
 		mLoadNewMapButton.setEnabled(true);
 		
-		mDeleteAllFilesButton.setEnabled(true);
 		
 	}
 	

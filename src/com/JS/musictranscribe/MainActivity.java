@@ -186,6 +186,9 @@ public class MainActivity extends Activity {
 		
 		ActivityManager activityManager = (ActivityManager) getSystemService(ACTIVITY_SERVICE);
 		Log.i(TAG,"Maximum around of memory allowed for this device: " + activityManager.getMemoryClass());
+		
+		// Initializations required for application
+		Helper.setStringPref("activeDataFile", null, getApplicationContext());
 	}
 	
 
