@@ -20,6 +20,7 @@ import android.util.Log;
 public class Helper {
 
 	private static final String TAG = "Helper";
+	
 	/*
 	 * App-wide Audio options
 	 */
@@ -28,62 +29,97 @@ public class Helper {
 	public static final int EXTERNAL_BUFFER_SIZE = nextLowerPowerOf2((int)(SAMPLING_SPEED*((float)DESIRED_EXTERNAL_BUFFER_TIME/1000))); //find next lower power of two
 	public static final int EXTERNAL_BUFFER_TIME = EXTERNAL_BUFFER_SIZE*1000/SAMPLING_SPEED; //find actual time being measured based on above
 	
-	public static final String defaultNoteSpectraFile = "defaultNotes";
+	//this is accessed from everywhere: key for sharedPreferences to get active note spectra file
+	public static final String ACTIVE_MAPDATA_FILE_KEY = "activeDataFile";
 	
-	public static final ArrayList<String> protectedFiles = new ArrayList<String>(Arrays.asList("default", "preferences"));
+	
+	//PROTECTED FILES LIST HERE! ie. files that cannot be deleted from the private storage
+	public static final ArrayList<String> protectedFiles = new ArrayList<String>(Arrays.asList("default"));
 	
 	
 	//------------------ File and Data Storage Functions ------------------
+	/*
+	 * For the noteSpectraFile functions;
+	 * This is how the note spectra files are formatted:
+	 * "note number
+	 * fftval0
+	 * fftval1
+	 * fftval2
+	 * .
+	 * .
+	 * .
+	 * fftval2047 (usually. designed to be flexible. getNoteSpectraFromFile() looks for following newline)
+	 * [newline]
+	 * note number
+	 * fftval0
+	 * .
+	 * .
+	 * .
+	 * fftval2047
+	 * ..."
+	 */
 	public static HashMap<Integer, Double[]> getNoteSpectraFromFile(Context context, String noteSpectraFileName) {
 		HashMap<Integer, Double[]> noteSpectraMap = new HashMap<Integer, Double[]>();
 		
 		BufferedReader file;
 		try {
+			//open a buffered reader of the indicated file
 			file= new BufferedReader(new InputStreamReader(context.openFileInput(noteSpectraFileName)));
 		} catch (FileNotFoundException e){
 			Log.e(TAG, "File not found \n" + e.toString());
+			//return empty hashmap
 			return noteSpectraMap;
 		}
 		
-	
+		//
 		ArrayList<Double> firstVals = new ArrayList<Double>(); //need this to see how long each data chunk is
 		Double[] vals;
 		
 		Log.i(TAG, "Reading map file: " + noteSpectraFileName);
 		try {
-			String s = file.readLine(); //STRIPS NEWLINES
-			Integer key = Integer.parseInt(s);
+			String s = file.readLine();	//STRIPS NEWLINES ON ITS OWN
+			Integer key = Integer.parseInt(s);	//key for first note
 			
 			s = file.readLine();
-			while (s.length() != 0) { //while not at end of first chunk of data. DOES read newline
-				firstVals.add(Double.valueOf(s));
-				s = file.readLine();
+			//while not at end of first chunk of data. DOESN'T read newline, so length != 0 works! If == 0, nothing in line!
+			while (s.length() != 0) {	
+				//get that fft value
+				firstVals.add(Double.valueOf(s)); 	
+				//read the next line. If it's blank, exit loop
+				s = file.readLine();	
 			}
 			
-			int size = firstVals.size();
+			//this is why we're using arraylist (slower): don't know how many data per note are stored
+			int size = firstVals.size(); 
 			Log.i(TAG, "Size of these data chunks is: " + size);
-			vals = new Double[size];
+			//now we can use faster arrays
+			vals = new Double[size]; 
 			
 			//copy the ArrayList into the new array
 			for (int i = 0; i < size; i++) {
-				vals[i] = firstVals.get(i);
+				//copy into Double[] since that's what the map takes
+				vals[i] = firstVals.get(i); 
 			}
 			
-			noteSpectraMap.put(key, vals);
-			s = file.readLine(); //either get next key or get null
+			//save that key, value pair
+			noteSpectraMap.put(key, vals); 
+			s = file.readLine(); //either get next key or get null (EOF)
 			while (s != null) {
-				vals = new Double[size]; //have to initialize new array since the map only references the arrays internally, doesn't store copies. If this isn't done, all the values will be the same array
+				//have to initialize new array since the map only references the arrays internally, doesn't store copies. If this isn't done, all the values will be the same array
+				vals = new Double[size];
 				key = Integer.parseInt(s);
+				//get the next 'size' number of values from the file
 				for (int i = 0; i < size; i++) {
 					s = file.readLine();
 					vals[i] = Double.valueOf(s);
 				}
-				
+				//save key, value pair
 				noteSpectraMap.put(key,vals);
 				
-				s = file.readLine(); //skip the newline between chunks of data
-				s = file.readLine(); //either this is the next key or null
-
+				//skip the newline between chunks of data
+				s = file.readLine(); 
+				//either this is the next key or null
+				s = file.readLine(); 
 			}
 			
 
@@ -91,20 +127,20 @@ public class Helper {
 			Log.e(TAG,"FAILED! Some error writing file");
 		}
 		
-		
 		return noteSpectraMap;
 	}
 	
 	public static void writeNewNoteSpectraFile(Context context, String filename, HashMap<Integer, Double[]> noteSpectraMap) throws  Exception {
-		for (String f : context.fileList()) {
-			if (filename.equals(f)) {
-				Log.e(TAG,"File exists!");
-				throw new Exception("File Exists");
-			}
+		//check if file exists!
+		if (listHas(getFileList(context), filename)) {
+			Log.e(TAG,"File exists!");
+			throw new Exception("File Exists");
 		}
+
 		
 		BufferedWriter file;
 		try {
+			//open buffered writer for that new file
 			file = new BufferedWriter(new OutputStreamWriter(context.openFileOutput(filename, context.MODE_PRIVATE)));
 			Log.i(TAG,"Created new File object");
 		} catch (FileNotFoundException e) {
@@ -115,12 +151,15 @@ public class Helper {
 		String key;
 		Double[] vals;
 		try {
+			//copy out key, value entries from the noteSpectra map
 			for (Map.Entry<Integer, Double[]> entry : noteSpectraMap.entrySet()) {
 				key = entry.getKey().toString();
-				file.write(key + "\n"); //write the key
+				//write the key
+				file.write(key + "\n"); 
+				//get the values
 				vals = entry.getValue();
-				Log.i(TAG,"Writing " + vals.length + " entries for current note: ");
-				for (int i = 0; i < vals.length; i++) { 	//write the array of values
+				//write the array of values
+				for (int i = 0; i < vals.length; i++) { 	
 					file.write(vals[i].toString() + "\n");
 				}
 				file.write("\n"); //end of one entry
@@ -129,14 +168,20 @@ public class Helper {
 			Log.e(TAG,"FAILED! Error writing new file \n" + e.toString());
 			throw new Exception("Error writing file");
 		}
-		
+		//don't forget to flush!
 		file.close();
 	}
 	
+	
+	/*
+	 * Function gets the private files,
+	 * returns ListElement objects. Designed for use with MyListFragment and ListElementAdapter.
+	 * Tells each ListElement if its the active one as saved in the sharedPreferences 
+	 */
 	public static ArrayList<ListElement> getFileListElements(Context context) {
 		ArrayList<ListElement> files = new ArrayList<ListElement>();
 		for (String s : getFileListAsArray(context)) {
-			if (s.equals(getStringPref("checkedElement", context))) {
+			if (s.equals(getStringPref(ACTIVE_MAPDATA_FILE_KEY, context))) {
 				files.add(new ListElement(s, true));
 			}
 			else {
@@ -147,26 +192,41 @@ public class Helper {
 		return files;		
 	}
 	
+	
+	/*
+	 * Return array of private file names
+	 */
 	public static String[] getFileListAsArray(Context context) {
 		String[] files = context.fileList();
 		return files;
 	}
 	
+	/*
+	 * Return ArrayList of private file names
+	 */
 	public static ArrayList<String> getFileList(Context context) {
-		return new ArrayList(Arrays.asList(getFileListAsArray(context)));
+		return new ArrayList<String>(Arrays.asList(getFileListAsArray(context)));
 	}
 	
+	/*
+	 * Delete all the private files
+	 */
 	public static void deleteAllPrivFiles(Context context) {
 		String[] files =  context.fileList();
 		
 		for (String file : files) {
-			if (listHas(protectedFiles, file)) { //default file should not be deleted
+			//protected file should not be deleted. protectedFiles defined at top of this file
+			if (listHas(protectedFiles, file)) { 
 				continue;
 			}
 			context.deleteFile(file);
 		}
 	}
 	
+	
+	/*
+	 * Following functions: easy interfaces for sharedPreferences
+	 */
 	public static String getStringPref(String key, Context context) {
 		SharedPreferences prefs = context.getSharedPreferences("com.JS.musictranscribe", Context.MODE_PRIVATE);
 		return prefs.getString(key, null);
@@ -189,23 +249,27 @@ public class Helper {
 	
 	
 	public static void setStringPref(String key, String value, Context context) {
-		Editor editor = context.getSharedPreferences("com.JS.musictranscripe", Context.MODE_PRIVATE).edit();
+		Editor editor = context.getSharedPreferences("com.JS.musictranscribe", Context.MODE_PRIVATE).edit();
 		editor.putString(key,  value);
+		editor.commit();
 	}
 	
 	public static void setBoolPref(String key, Boolean value, Context context) {
-		Editor editor = context.getSharedPreferences("com.JS.musictranscripe", Context.MODE_PRIVATE).edit();
+		Editor editor = context.getSharedPreferences("com.JS.musictranscribe", Context.MODE_PRIVATE).edit();
 		editor.putBoolean(key,  value);
+		editor.commit();
 	}
 	
 	public static void setIntPref(String key, int value, Context context) {
-		Editor editor = context.getSharedPreferences("com.JS.musictranscripe", Context.MODE_PRIVATE).edit();
+		Editor editor = context.getSharedPreferences("com.JS.musictranscribe", Context.MODE_PRIVATE).edit();
 		editor.putInt(key,  value);
+		editor.commit();
 	}
 	
 	public static void setFloatPref(String key, float value, Context context) {
-		Editor editor = context.getSharedPreferences("com.JS.musictranscripe", Context.MODE_PRIVATE).edit();
+		Editor editor = context.getSharedPreferences("com.JS.musictranscribe", Context.MODE_PRIVATE).edit();
 		editor.putFloat(key,  value);
+		editor.commit();
 	}
 
 	

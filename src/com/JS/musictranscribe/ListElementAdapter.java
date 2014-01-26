@@ -42,15 +42,16 @@ public class ListElementAdapter extends ArrayAdapter<ListElement> {
 			@Override
 			public void onClick(View v) {
 				Log.i(TAG, "Item Clicked!");
-				mElements.get(position).setChecked(true);
-				//uncheck previously checked ListElement
 				if (mSelectedElement != null) { //would be null the first time around
 					mSelectedElement.setChecked(false);
-				}
+				} //do above first in case we clicked the same thing, so that it doesn't unclick
+				
+				mElements.get(position).setChecked(true);
+				//uncheck previously checked ListElement
 				//set the tracker variable to the new checked ListElement
 				mSelectedElement = mElements.get(position);
 				//update the preference for persistence
-				Helper.setStringPref("activeDataFile", mSelectedElement.getTitle(), getContext());
+				Helper.setStringPref(Helper.ACTIVE_MAPDATA_FILE_KEY, mSelectedElement.getTitle(), getContext());
 				notifyDataSetChanged(); //somehow this detects if the checkbox has changed. keeping a reference to checkbox above alive? No idea...
 			}
 		});

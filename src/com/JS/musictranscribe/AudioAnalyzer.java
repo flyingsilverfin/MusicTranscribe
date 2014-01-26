@@ -10,6 +10,7 @@ import android.app.FragmentTransaction;
 import android.content.Context;
 import android.content.Intent;
 import android.util.Log;
+import android.widget.Toast;
  
 
 public class AudioAnalyzer extends Audio {
@@ -61,6 +62,7 @@ public class AudioAnalyzer extends Audio {
 		super(audioSource,samplingSpeed, isMonoFormat, is16BitFormat, externalBufferSize, context);
 		
 		if (mapFileName == null) {
+			Toast.makeText(context, "No file selected", Toast.LENGTH_SHORT);
 			Log.e(TAG,"No file name");
 			return;
 		}
@@ -102,7 +104,6 @@ public class AudioAnalyzer extends Audio {
 
 
 	}
-
 
 
 	//returns true if succeeded, false if could not start

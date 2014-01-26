@@ -47,19 +47,17 @@ public class DatacollectActivity extends Activity {
 	
 	private TextView mStatusTextView;
 	
-	private Button mStartNewMapButton;
 	private HashMap<Integer, Double[]> mNoteSpectraMap;
 	private int mNumSamplesForThisMap;
 	
+	private Button mStartNewMapButton;
+
 	private EditText mNewNoteMapNameEditText;
 	private Button mSaveNewMapButton;
 	
-	private EditText mLoadNoteMapEditText;
-	private Button mLoadNewMapButton;
 	private Button mListAllFilesButton;
 	
 	private MyListFragment mListFragment;
-	private boolean mIsFragmentExistent;
 	
 	private AudioCollector mAudioCollector;
 	
@@ -256,7 +254,7 @@ public class DatacollectActivity extends Activity {
 		
 		
 		/*
-		 * Button to List all files in the private storage
+		 * Button to start list fragment for all files in the private storage
 		 */
 		mListAllFilesButton = (Button) findViewById(R.id.list_all_private_files_button);
 		mListAllFilesButton.setOnClickListener(new View.OnClickListener() {
@@ -282,7 +280,7 @@ public class DatacollectActivity extends Activity {
 				true, true, Helper.EXTERNAL_BUFFER_SIZE, this);
 		
 		
-		//initialize List Fragment
+		//initialize List Fragment for possible later use
 		mListFragment = new MyListFragment();
 
 		
@@ -309,10 +307,7 @@ public class DatacollectActivity extends Activity {
 		mStartNewMapButton.setEnabled(false);
 		mNewNoteMapNameEditText.setEnabled(false);
 		mSaveNewMapButton.setEnabled(false);
-		
-		mLoadNoteMapEditText.setEnabled(false);
-		mLoadNewMapButton.setEnabled(false);
-		
+				
 		
 	}
 	
@@ -330,8 +325,6 @@ public class DatacollectActivity extends Activity {
 		mNewNoteMapNameEditText.setEnabled(true);
 		mSaveNewMapButton.setEnabled(true);
 		
-		mLoadNoteMapEditText.setEnabled(true);
-		mLoadNewMapButton.setEnabled(true);
 		
 		
 	}

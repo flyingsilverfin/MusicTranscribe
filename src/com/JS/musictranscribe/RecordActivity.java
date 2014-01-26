@@ -112,10 +112,11 @@ public class RecordActivity extends Activity {
 		
 		mGraphLayout.addView(mGraphView);
 		
+		
 		//set up List Fragment for later use
 		mListFragment = new MyListFragment();
 		//check if there's an active file, otherwise can't do anything
-		String activeFile = Helper.getStringPref("activeDataFile", getApplicationContext());
+		String activeFile = Helper.getStringPref(Helper.ACTIVE_MAPDATA_FILE_KEY, getApplicationContext());
 		if (activeFile == null) {
 			if (!mListFragment.isVisible()) {
 				Log.i(TAG, "starting list fragment");
@@ -127,10 +128,13 @@ public class RecordActivity extends Activity {
 			}
 		}
 		//update reference
-		activeFile = Helper.getStringPref("activeDataFile", getApplicationContext());
+		activeFile = Helper.getStringPref(Helper.ACTIVE_MAPDATA_FILE_KEY, getApplicationContext());
+		Log.i(TAG,"active file: " + activeFile);
+		
 		mAudioAnalyzer = new AudioAnalyzer(AudioSource.MIC, Helper.SAMPLING_SPEED, 
 				true, true, Helper.EXTERNAL_BUFFER_SIZE, this, activeFile);  //the constructor also has a check to make sure there's a valid file
 				//isMono and is16Bit = true, this = context to pass in for graphing activity source
+		
 		
 		mIsDBLoggedIn = getIntent().getBooleanExtra("DBLoggedIn", false);
 		if (mIsDBLoggedIn) {
@@ -141,8 +145,6 @@ public class RecordActivity extends Activity {
 			//dDBDataUploadToggleButton.setEnabled(false);
 			mAudioAnalyzer.setDBLoggedIn(false);
 		}
-		
-		
 		
 		
 	}

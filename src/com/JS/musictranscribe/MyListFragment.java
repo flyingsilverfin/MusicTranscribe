@@ -29,8 +29,9 @@ public class MyListFragment extends Fragment {
 				false);
 
 		mFileListElements = Helper.getFileListElements(getActivity());
-		String checkedTitle = Helper.getStringPref("activeDataFile", getActivity()); // this is stored as a string, the title of the file
+		String checkedTitle = Helper.getStringPref(Helper.ACTIVE_MAPDATA_FILE_KEY, getActivity()); // this is stored as a string, the title of the file
 		for (int i = 0; i < mFileListElements.size(); i++) {
+			Log.i(TAG,"FILE " + mFileListElements.get(i).getTitle() + " comp to " + checkedTitle);
 			if (mFileListElements.get(i).getTitle().equals(checkedTitle)) {
 				mSelectedListElement = mFileListElements.get(i);
 				break;
