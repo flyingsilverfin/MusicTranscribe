@@ -15,10 +15,11 @@ import android.widget.LinearLayout;
 
 import com.jjoe64.graphview.BarGraphView;
 import com.jjoe64.graphview.GraphView;
+import com.jjoe64.graphview.LineGraphView;
 import com.jjoe64.graphview.GraphView.GraphViewData;
 import com.jjoe64.graphview.GraphViewSeries;
 
-public class RecordActivity extends Activity {
+public class RecordActivity extends Activity implements MyListFragment.OnSomethingCheckedInterface {
 
 	private static final String TAG = "RecordActivity";
 	
@@ -42,6 +43,7 @@ public class RecordActivity extends Activity {
 	
 	//list selection fragment
 	private MyListFragment mListFragment;
+	private String mActiveFile;
 
 	//DEBUG
 		private Button dGraphEveryCycleToggleButton;
@@ -100,24 +102,29 @@ public class RecordActivity extends Activity {
 
 		
 		//set up graphView
-		mGraphView = new BarGraphView(this, "Amplitude");
-		mGraphView.setScalable(false);
+		mGraphView = new BarGraphView(this, "H");
 		mGraphView.setBackgroundColor(Color.WHITE);
-		mGraphView.setScrollable(false);
+		mGraphView.setScrollable(true);
 		mGraphView.setScalable(false);
-		mGraphView.setManualYAxisBounds(1000,0);
-		mGraphLayout = (LinearLayout) findViewById(R.id.amplitude_graph);
-		mGraphData = new GraphViewSeries("Amplitude Data", null, new GraphViewData[] { new GraphViewData(0,0) });
+		mGraphView.setManualYAxisBounds(10,0);
+		//mGraphView.setVerticalLabels(new String[] {"10^1","10^2","10^3","10^4"}); //trying to get this working...
+		//mGraphView.setViewPort(-1,0.2);
+		mGraphView.getGraphViewStyle().setVerticalLabelsWidth(1);
+		mGraphData = new GraphViewSeries(new GraphViewData[] { new GraphViewData(0,0) });
 		mGraphView.addSeries(mGraphData);
 		
+		
+		mGraphLayout = (LinearLayout) findViewById(R.id.amplitude_graph);
 		mGraphLayout.addView(mGraphView);
+
 		
 		
 		//set up List Fragment for later use
 		mListFragment = new MyListFragment();
 		//check if there's an active file, otherwise can't do anything
-		String activeFile = Helper.getStringPref(Helper.ACTIVE_MAPDATA_FILE_KEY, getApplicationContext());
-		if (activeFile == null) {
+		
+		mActiveFile = Helper.getStringPref(Helper.ACTIVE_MAPDATA_FILE_KEY, getApplicationContext());
+		if (Helper.getStringPref(Helper.ACTIVE_MAPDATA_FILE_KEY, getApplicationContext()) == null) {
 			if (!mListFragment.isVisible()) {
 				Log.i(TAG, "starting list fragment");
 				FragmentManager fragmentManager = getFragmentManager();
@@ -127,12 +134,11 @@ public class RecordActivity extends Activity {
 				fragmentTransaction.commit();
 			}
 		}
-		//update reference
-		activeFile = Helper.getStringPref(Helper.ACTIVE_MAPDATA_FILE_KEY, getApplicationContext());
-		Log.i(TAG,"active file: " + activeFile);
+		
+		Log.i(TAG,"active file: " + mActiveFile);
 		
 		mAudioAnalyzer = new AudioAnalyzer(AudioSource.MIC, Helper.SAMPLING_SPEED, 
-				true, true, Helper.EXTERNAL_BUFFER_SIZE, this, activeFile);  //the constructor also has a check to make sure there's a valid file
+				true, true, Helper.EXTERNAL_BUFFER_SIZE, this, mActiveFile);  //the constructor also has a check to make sure there's a valid file
 				//isMono and is16Bit = true, this = context to pass in for graphing activity source
 		
 		
@@ -197,10 +203,13 @@ public class RecordActivity extends Activity {
 
 	private void toggleRecording() {
 		if (mIsFirstToggle) { //this only runs the first time
-			mIsRecordingPaused = false;
-			startLiveAmplitudeGraph();
-			mAudioAnalyzer.startRecording();
-			mIsFirstToggle = false;
+			boolean success = mAudioAnalyzer.startRecording();
+			if (success) {
+				Log.e(TAG,"Failed to start audio analyzer");
+				mIsRecordingPaused = false;
+				startLiveAmplitudeGraph();
+				mIsFirstToggle = false;
+			}
 		}
 		else if (mIsRecordingPaused) {
 			mIsRecordingPaused = false;
@@ -227,24 +236,22 @@ public class RecordActivity extends Activity {
 
 	private void startLiveAmplitudeGraph() {
 		mIsLiveGraphOn = true;
-		Log.i(TAG,"going to make bar graph!");
 		//would it be better to use an interrupt to do this? With boolean get to keep track of if its on or not, I think its better like this.
 		(new Thread() {
 			public void run() {
 				Log.i(TAG,"In run()");
 				while (mIsLiveGraphOn) {
 					try {
-						Log.i(TAG,"In try");
 						Thread.sleep(100);
 					} catch( InterruptedException e) { Log.d(TAG,e.getMessage());}
-					Log.i(TAG,"out of try, resetting Data");
 					
 					
 					runOnUiThread(new Runnable() {
 						@Override
 						public void run() {
+							Log.i(TAG,"Val: " + mAudioAnalyzer.getCurrentAvAmplitude());
 							mGraphData.resetData( new GraphViewData[] { 
-									new GraphViewData(0, mAudioAnalyzer.getCurrentAvAmplitude()),
+									new GraphViewData(0, Math.log10(mAudioAnalyzer.getCurrentAvAmplitude()))
 								});							
 						}
 					});
@@ -316,4 +323,18 @@ public class RecordActivity extends Activity {
 	private boolean isDBDataUploadEnabled() {
 		return dDBDataUploadEnabled;
 	}
+	
+	//------------------------------
+	
+	/*
+	 * For the MyListFragment communication
+	 */
+	public void onSomethingChecked() {
+		
+		//if the thing checked is different from what was selected before then rebuild the AudioAnalyzer
+		if (!Helper.getStringPref(Helper.ACTIVE_MAPDATA_FILE_KEY, getApplicationContext()).equals(mActiveFile)) {
+			mAudioAnalyzer.setNoteMapDataFile(Helper.getStringPref(Helper.ACTIVE_MAPDATA_FILE_KEY, getApplicationContext()), getApplicationContext());
+		}
+	}
+	
 }

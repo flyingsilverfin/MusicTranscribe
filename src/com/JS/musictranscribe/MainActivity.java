@@ -7,6 +7,8 @@ import java.util.HashMap;
 
 import android.app.Activity;
 import android.app.ActivityManager;
+import android.app.FragmentManager;
+import android.app.FragmentTransaction;
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
@@ -54,6 +56,7 @@ public class MainActivity extends Activity {
 		mGotoRecordingButton.setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View v) {
+	
 				Intent intent = new Intent(MainActivity.this, RecordActivity.class);
 				//Pass along if Dropbox is logged in or not
 				intent.putExtra("DBLoggedIn", isLoggedIn());

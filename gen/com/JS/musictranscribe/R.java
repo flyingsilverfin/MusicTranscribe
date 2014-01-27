@@ -25,13 +25,13 @@ public final class R {
         public static final int note1=0x7f020001;
     }
     public static final class id {
-        public static final int Make_Graph_Button=0x7f080023;
+        public static final int Make_Graph_Button=0x7f080024;
         public static final int Note_Container=0x7f080020;
-        public static final int Record_Buttons=0x7f080021;
-        public static final int Record_PausePlay_Button=0x7f080022;
+        public static final int Record_Buttons=0x7f080022;
+        public static final int Record_PausePlay_Button=0x7f080023;
         public static final int action_settings=0x7f08002a;
-        public static final int amplitude_graph=0x7f080025;
-        public static final int dGraph_Every_Cycle_Button=0x7f080024;
+        public static final int amplitude_graph=0x7f080021;
+        public static final int dGraph_Every_Cycle_Button=0x7f080025;
         public static final int delete_all_files_button=0x7f080026;
         public static final int delete_all_private_files_button=0x7f08000d;
         public static final int disable_cont_graphing_button=0x7f080015;

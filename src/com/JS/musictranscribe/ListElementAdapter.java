@@ -18,14 +18,19 @@ public class ListElementAdapter extends ArrayAdapter<ListElement> {
 	private int mLayoutResId;
 	private ArrayList<ListElement> mElements;
 	private ListElement mSelectedElement;
+	
+	//for communicating with parent class (MyListFragment)
+	private OnListElementClickedInterface mCommunicatorInterface;
+	
 
 	public ListElementAdapter(Context context, int layoutResId,
-			ArrayList<ListElement> elements, ListElement selectedListElement) {
+			ArrayList<ListElement> elements, ListElement selectedListElement, OnListElementClickedInterface communicatorInterface) {
 		super(context, layoutResId, elements);
 		mContext = context;
 		mLayoutResId = layoutResId;
 		mElements = elements;
 		mSelectedElement = selectedListElement;
+		mCommunicatorInterface = communicatorInterface;
 	}
 
 	@Override
@@ -53,9 +58,15 @@ public class ListElementAdapter extends ArrayAdapter<ListElement> {
 				//update the preference for persistence
 				Helper.setStringPref(Helper.ACTIVE_MAPDATA_FILE_KEY, mSelectedElement.getTitle(), getContext());
 				notifyDataSetChanged(); //somehow this detects if the checkbox has changed. keeping a reference to checkbox above alive? No idea...
+				mCommunicatorInterface.onElementChecked();
 			}
 		});
 		return rowView;
+	}
+	
+	
+	public interface OnListElementClickedInterface {
+		public void onElementChecked();
 	}
 
 }

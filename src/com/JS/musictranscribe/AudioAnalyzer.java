@@ -64,7 +64,6 @@ public class AudioAnalyzer extends Audio {
 		if (mapFileName == null) {
 			Toast.makeText(context, "No file selected", Toast.LENGTH_SHORT);
 			Log.e(TAG,"No file name");
-			return;
 		}
 		mCompleteRawData = new short[mMAX_NOTE_SECONDS * getSamplingSpeed()];
 
@@ -84,23 +83,25 @@ public class AudioAnalyzer extends Audio {
 
 		mNoteMapDataFile = mapFileName;
 		
-		HashMap<Integer, Double[]> noteSpectraMap = Helper.getNoteSpectraFromFile(context.getApplicationContext(), mNoteMapDataFile);
-		Integer[] noteNums = noteSpectraMap.keySet().toArray(new Integer[1]);
-					
-		Log.i(TAG, "Building matrices and RREF");
-		Matrix dataMatrix = new Matrix(noteSpectraMap.get(noteNums[0]).length, noteNums.length); //map must have values of same length
-		Arrays.sort(noteNums);
-		Log.i(TAG,"Notes in reference data: ");
-		Helper.printArray(noteNums);
-		for (int i = 0; i < noteNums.length; i++) {
-			dataMatrix.writeCol(i, noteSpectraMap.get(noteNums[i]));
+		if (mNoteMapDataFile != null) {
+			Log.d(TAG,"No data file given, skipping matrix initializations");
+			HashMap<Integer, Double[]> noteSpectraMap = Helper.getNoteSpectraFromFile(context.getApplicationContext(), mNoteMapDataFile);
+			Integer[] noteNums = noteSpectraMap.keySet().toArray(new Integer[1]);
+						
+			Log.i(TAG, "Building matrices and RREF");
+			Matrix dataMatrix = new Matrix(noteSpectraMap.get(noteNums[0]).length, noteNums.length); //map must have values of same length
+			Arrays.sort(noteNums);
+			Log.i(TAG,"Notes in reference data: ");
+			Helper.printArray(noteNums);
+			for (int i = 0; i < noteNums.length; i++) {
+				dataMatrix.writeCol(i, noteSpectraMap.get(noteNums[i]));
+			}
+			mDataTranspose = dataMatrix.getTranspose();
+			Matrix sqrMatrix = mDataTranspose.multOnLeftOf(dataMatrix);
+			mRecord = sqrMatrix.RREF();
+			
+			mSampleMatrix = new Matrix(mIntervalFreqData.length, 1);
 		}
-		mDataTranspose = dataMatrix.getTranspose();
-		Matrix sqrMatrix = mDataTranspose.multOnLeftOf(dataMatrix);
-		mRecord = sqrMatrix.RREF();
-		
-		mSampleMatrix = new Matrix(mIntervalFreqData.length, 1);
-		
 
 
 	}
@@ -108,6 +109,10 @@ public class AudioAnalyzer extends Audio {
 
 	//returns true if succeeded, false if could not start
 	public boolean startRecording() {
+		if (mNoteMapDataFile == null) {
+			Log.e(TAG,"No data file given. Aborting recording start");
+			return false;
+		}
 		startAudioRecording();
 		if (isRecorderRunning()) {
 			mIsRecordingPaused = false;
@@ -286,7 +291,11 @@ other random TODO's:
 		private Thread mAnalyzerThread;
 
 		public readerRunnable() {
-			mIsPaused = false;
+			//it doesn't actually matter what this starts as
+			//it's only used in the pause() method
+			//which sets it to true to start with anyway...
+			//pause() method should only be run from within run() function
+			mIsPaused = true;
 		}
 
 		public void run() {
@@ -351,7 +360,11 @@ other random TODO's:
 		private Thread mReaderThread;
 
 		public analyzerRunnable() {
-			mIsPaused = false;
+			//it doesn't actually matter what this starts as
+			//it's only used in the pause() method
+			//which sets it to true to start with anyway...
+			//pause() method should only be run from within run() function
+			mIsPaused = true;
 		}
 
 		public void run() {
@@ -457,8 +470,9 @@ other random TODO's:
 		return mNoteMapDataFile;
 	}
 	
-	public void setNoteMapDatFile(String filename, Context context) {
+	public void setNoteMapDataFile(String filename, Context context) {
 		
+		Log.i(TAG,"New filename is: " + filename);
 		if (!isThreadingPaused()) {
 			Log.i(TAG,"Pausing recording. Having to do this is bad coding. Activity shouldn't be allowing to change reference data in the middle of recording... (unless this is a new feature)");
 			pauseRecording();
@@ -482,7 +496,7 @@ other random TODO's:
 		
 		mSampleMatrix = new Matrix(mIntervalFreqData.length, 1);
 		
-		Log.i(TAG,"Ready to resume");
+		Log.i(TAG,"Ready to resume or start");
 		
 	}
 }
