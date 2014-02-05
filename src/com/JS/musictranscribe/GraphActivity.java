@@ -79,21 +79,6 @@ public class GraphActivity extends Activity {
 		
 		Log.i(TAG,"Wired Submit Button");
 		
-		//set up percentage button
-		mPercentActivityButton = (Button) findViewById(R.id.percentb);
-		mPercentActivityButton.setOnClickListener(new View.OnClickListener() {
-			@Override
-			public void onClick(View v) {
-				Intent intent = new Intent(GraphActivity.this, PercentDataActivity.class);
-				String key2 = "xAxis_" + String.valueOf(graphChoicesSpinner.getSelectedItem());
-				intent.putExtra("key", key2);
-				intent.putExtra("xFFT", getIntent().getDoubleArrayExtra(key2));
-				intent.putExtra("data", getIntent().getDoubleArrayExtra(key2.substring(6)));
-				startActivity(intent);
-				
-			}
-		});
-		
 		
 		dGraphEveryCycle = getIntent().getBooleanExtra("dGraphEveryCycle", false);
 		mDisableContGraphing = (Button) findViewById(R.id.disable_cont_graphing_button);

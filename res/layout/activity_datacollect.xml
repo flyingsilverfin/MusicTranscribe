@@ -31,6 +31,13 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/start_n_recordings" />
+
+            <Button
+                android:id="@+id/recording_summary_button"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginLeft="20dp"
+                android:text="@string/recording_summary_button_text" />
         </LinearLayout>
 
         <LinearLayout
@@ -52,6 +59,8 @@
                 android:layout_height="wrap_content"
                 android:text="@string/start_timed_recording" />
         </LinearLayout>
+
+        <View style="@style/Divider" />
 
         <LinearLayout
             android:layout_width="wrap_content"
@@ -112,34 +121,18 @@
             android:gravity="center"
             android:orientation="horizontal" >
 
-            <EditText
-                android:id="@+id/load_note_map_edittext"
-                android:layout_width="150dp"
-                android:layout_height="wrap_content"
-                android:hint="@string/map_file_name_edittext_hint" />
-
-            <Button
-                android:id="@+id/load_note_map_button"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/load_note_map_button_text" />
-
             <Button
                 android:id="@+id/list_all_private_files_button"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="@string/list_all_private_files_button_text" />
-
-            <Button
-                android:id="@+id/delete_all_private_files_button"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:text="@string/delete_all_private_files_button_text" />
         </LinearLayout>
     </LinearLayout>
 
-    <FrameLayout android:id="@+id/empty_fragment"
+    <FrameLayout
+        android:id="@+id/empty_fragment"
         android:layout_width="200dp"
-        android:layout_height="match_parent" />
+        android:layout_height="match_parent" 
+        android:layout_gravity="right"/>
 
 </FrameLayout>

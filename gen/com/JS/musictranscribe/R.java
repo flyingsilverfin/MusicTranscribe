@@ -25,58 +25,60 @@ public final class R {
         public static final int note1=0x7f020001;
     }
     public static final class id {
-        public static final int Make_Graph_Button=0x7f080024;
-        public static final int Note_Container=0x7f080020;
-        public static final int Record_Buttons=0x7f080022;
-        public static final int Record_PausePlay_Button=0x7f080023;
-        public static final int action_settings=0x7f08002a;
-        public static final int amplitude_graph=0x7f080021;
-        public static final int dGraph_Every_Cycle_Button=0x7f080025;
-        public static final int delete_all_files_button=0x7f080026;
-        public static final int delete_all_private_files_button=0x7f08000d;
-        public static final int disable_cont_graphing_button=0x7f080015;
-        public static final int dropbox_login_button=0x7f08001c;
-        public static final int element_checkbox=0x7f080028;
-        public static final int element_title=0x7f080029;
-        public static final int empty_fragment=0x7f08000e;
-        public static final int file_list_view=0x7f080027;
-        public static final int get_note_data_button=0x7f080005;
-        public static final int goto_datacollect_activity=0x7f08001a;
-        public static final int goto_graphics=0x7f08001e;
-        public static final int goto_recording_button=0x7f080019;
-        public static final int graph=0x7f08000f;
-        public static final int graph_buttons=0x7f080012;
-        public static final int graph_options=0x7f080010;
-        public static final int graph_spinner=0x7f080011;
-        public static final int graphicsActivityPlay=0x7f080017;
-        public static final int graphicsLayout=0x7f080016;
-        public static final int library_button=0x7f08001b;
-        public static final int list_all_private_files_button=0x7f08000c;
-        public static final int load_note_map_button=0x7f08000b;
-        public static final int load_note_map_edittext=0x7f08000a;
-        public static final int new_note_map_name_edittext=0x7f080008;
-        public static final int note_num_edittext=0x7f080004;
+        public static final int Make_Graph_Button=0x7f080021;
+        public static final int Note_Container=0x7f08001d;
+        public static final int Record_Buttons=0x7f08001f;
+        public static final int Record_PausePlay_Button=0x7f080020;
+        public static final int action_settings=0x7f08002c;
+        public static final int amplitude_graph=0x7f08001e;
+        public static final int amplitude_textview=0x7f080027;
+        public static final int dGraph_Every_Cycle_Button=0x7f080022;
+        public static final int delete_all_files_button=0x7f080023;
+        public static final int disable_cont_graphing_button=0x7f080013;
+        public static final int dropbox_login_button=0x7f08001a;
+        public static final int element_checkbox=0x7f08002a;
+        public static final int element_title=0x7f08002b;
+        public static final int empty_fragment=0x7f08000c;
+        public static final int file_list_view=0x7f080024;
+        public static final int get_note_data_button=0x7f080006;
+        public static final int goto_datacollect_activity=0x7f080018;
+        public static final int goto_graphics=0x7f08001c;
+        public static final int goto_recording_button=0x7f080017;
+        public static final int graph=0x7f08000d;
+        public static final int graph_buttons=0x7f080010;
+        public static final int graph_options=0x7f08000e;
+        public static final int graph_spinner=0x7f08000f;
+        public static final int graphicsActivityPlay=0x7f080015;
+        public static final int graphicsLayout=0x7f080014;
+        public static final int library_button=0x7f080019;
+        public static final int list_all_private_files_button=0x7f08000b;
+        public static final int new_note_map_name_edittext=0x7f080009;
+        public static final int note_num_edittext=0x7f080005;
         public static final int num_recordings_edittext=0x7f080000;
-        public static final int percentID=0x7f08001f;
-        public static final int percentb=0x7f080014;
-        public static final int random_matrix_button=0x7f08001d;
-        public static final int recording_time_edittext=0x7f080002;
-        public static final int save_new_map_button=0x7f080009;
-        public static final int start_new_map_button=0x7f080007;
-        public static final int status_textview=0x7f080006;
-        public static final int submit_graph_choice_button=0x7f080013;
+        public static final int percentb=0x7f080012;
+        public static final int random_matrix_button=0x7f08001b;
+        public static final int recording_summary_button=0x7f080002;
+        public static final int recording_time_edittext=0x7f080003;
+        public static final int save_new_map_button=0x7f08000a;
+        public static final int start_new_map_button=0x7f080008;
+        public static final int status_textview=0x7f080007;
+        public static final int submit_graph_choice_button=0x7f080011;
         public static final int submit_n_recordings_button=0x7f080001;
-        public static final int submit_time_recording_button=0x7f080003;
-        public static final int welcome_text=0x7f080018;
+        public static final int submit_time_recording_button=0x7f080004;
+        public static final int summary_fragment_graph=0x7f080025;
+        public static final int summary_graph_spinner=0x7f080026;
+        public static final int temporal_length_textview=0x7f080028;
+        public static final int top_frequencies_textview=0x7f080029;
+        public static final int welcome_text=0x7f080016;
     }
     public static final class layout {
         public static final int activity_datacollect=0x7f030000;
         public static final int activity_graph=0x7f030001;
         public static final int activity_graphics=0x7f030002;
         public static final int activity_main=0x7f030003;
-        public static final int activity_percent_data=0x7f030004;
-        public static final int activity_record=0x7f030005;
-        public static final int file_list_fragment=0x7f030006;
+        public static final int activity_record=0x7f030004;
+        public static final int file_list_fragment=0x7f030005;
+        public static final int fragment_summary=0x7f030006;
         public static final int list_element=0x7f030007;
     }
     public static final class menu {
@@ -94,32 +96,33 @@ public final class R {
         public static final int dGraph_every_cycle_button_text=0x7f05000b;
         public static final int default_num_recordings=0x7f050011;
         public static final int default_recording_time=0x7f050013;
-        public static final int delete_all_private_files_button_text=0x7f05001b;
-        public static final int get_note_data_button_text=0x7f050015;
+        public static final int delete_all_private_files_button_text=0x7f05001c;
+        public static final int get_note_data_button_text=0x7f050016;
         public static final int goto_datacollect_activity_button=0x7f050010;
-        public static final int goto_graphics_button=0x7f05001e;
+        public static final int goto_graphics_button=0x7f05001f;
         public static final int goto_recording_button_text=0x7f050004;
         public static final int hello_world=0x7f05000e;
         public static final int library_button_text=0x7f050003;
-        public static final int list_all_private_files_button_text=0x7f05001a;
-        public static final int load_note_map_button_text=0x7f050019;
+        public static final int list_all_private_files_button_text=0x7f05001b;
+        public static final int load_note_map_button_text=0x7f05001a;
         public static final int make_graph_button_text=0x7f05000a;
-        public static final int map_file_name_edittext_hint=0x7f050018;
+        public static final int map_file_name_edittext_hint=0x7f050019;
         /**  Misc/reusable 
          */
-        public static final int one=0x7f05001c;
+        public static final int one=0x7f05001d;
         public static final int random_matrix_button_text=0x7f050005;
         public static final int record_button_text=0x7f050009;
-        public static final int save_new_map_button_text=0x7f050017;
+        public static final int recording_summary_button_text=0x7f050014;
+        public static final int save_new_map_button_text=0x7f050018;
         public static final int start_n_recordings=0x7f050012;
-        public static final int start_new_map_button_text=0x7f050016;
-        public static final int start_timed_recording=0x7f050014;
+        public static final int start_new_map_button_text=0x7f050017;
+        public static final int start_timed_recording=0x7f050015;
         public static final int submit_button=0x7f050006;
         /**  Data collect Activity 
          */
         public static final int title_activity_datacollect=0x7f05000f;
         public static final int title_activity_graph=0x7f050007;
-        public static final int title_activity_graphics=0x7f05001d;
+        public static final int title_activity_graphics=0x7f05001e;
         public static final int title_activity_percent_data=0x7f05000d;
         public static final int title_activity_record=0x7f050008;
         public static final int welcome_text=0x7f050002;
@@ -151,5 +154,6 @@ public final class R {
  All customizations that are NOT specific to a particular API-level can go here. 
          */
         public static final int AppTheme=0x7f060001;
+        public static final int Divider=0x7f060002;
     }
 }

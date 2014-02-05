@@ -23,6 +23,7 @@
     <string name="default_num_recordings">15</string>
     <string name="start_n_recordings">Get this many recordings</string>
     <string name="default_recording_time">3000</string>
+    <string name="recording_summary_button_text">Summary</string>
     <string name="start_timed_recording">Record this long (ms)</string>
     <string name="get_note_data_button_text">Get data for this note</string>
     <string name="start_new_map_button_text">Reset to new map</string>

@@ -257,11 +257,15 @@ public class AudioAnalyzer extends Audio {
 	 */
 	//returns double[] of hertz axis of the FFT
 	public double[] getHertzAxis(int numFreqData) {
-		double[] frequencyAxis = new double[numFreqData];
+		//This is the newer way of doing it (math hidden in Helper):
+		double[] frequencyAxis = Helper.getFrequencyAxis(((double)2*(numFreqData+1))/Helper.SAMPLING_SPEED, numFreqData);
+		
+		/*double[] frequencyAxis = new double[numFreqData];
 		for (int i = 0; i < numFreqData; i++) {
 			frequencyAxis[i] = (i+1) * getSamplingSpeed() / ((numFreqData +1)*2);			
 			//other way of looking at it: basic hertz = 1/time = 1/(numData/SamplingSpeed)	
-		}
+		}*/
+		
 		return frequencyAxis;
 	}
 

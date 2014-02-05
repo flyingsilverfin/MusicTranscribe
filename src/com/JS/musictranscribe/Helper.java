@@ -34,7 +34,7 @@ public class Helper {
 	
 	
 	//PROTECTED FILES LIST HERE! ie. files that cannot be deleted from the private storage
-	public static final ArrayList<String> protectedFiles = new ArrayList<String>(Arrays.asList("default"));
+	public static final ArrayList<String> protectedFiles = new ArrayList<String>(Arrays.asList("default", "one_oct_white"));
 	
 	
 	//------------------ File and Data Storage Functions ------------------
@@ -395,7 +395,31 @@ public class Helper {
 		return result;
 	}
 	
+	public static double[] joinArrays(double[][] arrs) {
+		int len = 0;
+		for (int i = 0; i < arrs.length; i++) {
+			len += arrs[i].length;
+		}
+		double[] arr = new double[len];
+		int counter = 0;
+		for (int i = 0; i < arrs.length; i++) {
+			for (int j = 0; j < arrs[i].length; j++) {
+				arr[counter] = arrs[i][j];
+				counter++;
+			}
+		}
+		
+		return arr;
+	}
 	
+	
+	public static double[] range(int start, double step, int num) {
+		double[] arr = new double[num];
+		for (int i = 0; i < num; i++ ){
+			arr[i] = start + i*step;
+		}
+		return arr;
+	}
 	
 	//------------------ Audio Functions ------------------
 
@@ -418,10 +442,11 @@ public class Helper {
 	}
 	
 	
-	public static double[] getFrequencyAxis(float lengthInMs, int num){
+	public static double[] getFrequencyAxis(double lengthInS, int num){
 		double[] frequencyAxis = new double[num];
-		frequencyAxis[0] = 1/lengthInMs; //base frequency
-		
+		Log.i(TAG,"time length: " + lengthInS);
+		frequencyAxis[0] = 1/lengthInS; //base frequency
+		Log.i(TAG,"base frequency : " + frequencyAxis[0]);
 		for (int i = 1; i < num; i++) {
 			frequencyAxis[i] = frequencyAxis[0] * (i+1);
 		}

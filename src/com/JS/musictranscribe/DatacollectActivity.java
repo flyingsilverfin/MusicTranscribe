@@ -4,7 +4,6 @@ import java.util.HashMap;
 
 import android.annotation.TargetApi;
 import android.app.Activity;
-import android.app.Fragment;
 import android.app.FragmentManager;
 import android.app.FragmentTransaction;
 import android.media.MediaRecorder.AudioSource;
@@ -42,6 +41,8 @@ public class DatacollectActivity extends Activity {
 	private EditText mTimedRecordingEditText;
 	private Button mStartTimedRecordingButton;
 	
+	private Button mRecordingSummaryButton;
+	
 	private EditText mNoteNumEditText;
 	private Button mGetNoteDataButton;
 	
@@ -58,8 +59,10 @@ public class DatacollectActivity extends Activity {
 	private Button mListAllFilesButton;
 	
 	private MyListFragment mListFragment;
+	private SummaryFragment mSummaryFragment;
 	
 	private AudioCollector mAudioCollector;
+	private double[][] mSamples;
 	
 	//Dropbox
 	private boolean mIsDBLoggedIn;
@@ -87,9 +90,9 @@ public class DatacollectActivity extends Activity {
 				int num = Integer.parseInt(mNumRecordingsEditText.getText().toString());
 				disableInputs();
 				Log.i(TAG,"\tGoing to record: " + num + "times");
-				double[][] result = mAudioCollector.getNSamples(num);
-				mAudioCollector.writeSamplesToDropbox(result, num+"recordings");
-				status("Recorded " + result.length + " recordings and uploaded to Dropbox if logged in");
+				mSamples = mAudioCollector.getNSamples(num);
+				mAudioCollector.writeSamplesToDropbox(mSamples, num+"recordings");
+				status("Recorded " + mSamples.length + " recordings and uploaded to Dropbox if logged in");
 				enableInputs();
 			}
 		});
@@ -106,14 +109,40 @@ public class DatacollectActivity extends Activity {
 				int msecs = Integer.parseInt(mTimedRecordingEditText.getText().toString());
 				disableInputs();
 				Log.i(TAG,"\tGoing to record for: " + mTimedRecordingEditText.getText().toString() + "milliseconds");
-				double[][] result = mAudioCollector.getSamplesFor(msecs*1000);
-				status("Recorded " + result.length + " recordings in " +  mTimedRecordingEditText.getText().toString() +
+				mSamples = mAudioCollector.getSamplesFor(msecs*1000);
+				status("Recorded " + mSamples.length + " recordings in " +  mTimedRecordingEditText.getText().toString() +
 						" ms and uploaded to Dropbox if logged in");
-				mAudioCollector.writeSamplesToDropbox(result, msecs+"msRecording");
+				mAudioCollector.writeSamplesToDropbox(mSamples, msecs+"msRecording");
 				enableInputs();
 				
 			}
 		});
+		
+		mRecordingSummaryButton = (Button) findViewById(R.id.recording_summary_button);
+		mRecordingSummaryButton.setOnClickListener(new View.OnClickListener() {
+			
+			@Override
+			public void onClick(View v) {
+				if (!mSummaryFragment.isVisible()) {
+					Log.i(TAG,"Starting summary fragment");
+					mSummaryFragment = new SummaryFragment();
+					FragmentManager fragmentManager = getFragmentManager();
+					Bundle bundle = new Bundle();
+					double[] joined = Helper.joinArrays(mSamples);
+					double[] averaged = Helper.averageArrays(mSamples);
+					bundle.putDoubleArray("fftVals", Helper.fft(averaged));
+					bundle.putDoubleArray("audioVals", joined);
+					bundle.putDouble("amplitude", Helper.sumArrayInAbs(averaged)/averaged.length);
+					bundle.putDouble("timeLength", ((double)joined.length)/Helper.SAMPLING_SPEED);
+					mSummaryFragment.setArguments(bundle);
+					FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+					fragmentTransaction.add(R.id.empty_fragment, mSummaryFragment);
+					fragmentTransaction.addToBackStack(null);
+					fragmentTransaction.commit();
+				}
+			}
+		});
+		
 		
 		/*
 		 * Button to initialize a fresh HashMap
@@ -216,19 +245,18 @@ public class DatacollectActivity extends Activity {
 						
 						Log.i(TAG, "Recording...");
 						
-						double[][] samples;
 						if (mNumSamplesForThisMap == -1) { //if this is the first recording for this map
-							samples = mAudioCollector.getSamplesFor(3000000);
-							mNumSamplesForThisMap = samples.length;
+							mSamples = mAudioCollector.getSamplesFor(3000000);
+							mNumSamplesForThisMap = mSamples.length;
 							Log.i(TAG, "First time for new map, got " + mNumSamplesForThisMap + " samples");
 						}
 						else {
 							Log.i(TAG, "Getting another " + mNumSamplesForThisMap + " samples");
-							samples = mAudioCollector.getNSamples(mNumSamplesForThisMap);
+							mSamples = mAudioCollector.getNSamples(mNumSamplesForThisMap);
 						}
 						
 						Log.i(TAG,"Averaging samples &  doing FFT");
-						Double[] fft = mAudioCollector.fftIntoDoubleObjects(Helper.averageArrays(samples));
+						Double[] fft = mAudioCollector.fftIntoDoubleObjects(Helper.averageArrays(mSamples));
 						
 						Log.i(TAG,"Adding to hashmap");
 						if (mNoteSpectraMap.containsKey(Integer.valueOf(noteNum))) {
@@ -269,6 +297,7 @@ public class DatacollectActivity extends Activity {
 					fragmentTransaction.add(R.id.empty_fragment, mListFragment);
 					fragmentTransaction.addToBackStack(null);
 					fragmentTransaction.commit();
+					
 				}
 				
 			}
@@ -282,6 +311,7 @@ public class DatacollectActivity extends Activity {
 		
 		//initialize List Fragment for possible later use
 		mListFragment = new MyListFragment();
+		mSummaryFragment = new SummaryFragment();
 
 		
 		mIsDBLoggedIn = getIntent().getBooleanExtra("DBLoggedIn", false);
@@ -324,8 +354,6 @@ public class DatacollectActivity extends Activity {
 		mStartNewMapButton.setEnabled(true);
 		mNewNoteMapNameEditText.setEnabled(true);
 		mSaveNewMapButton.setEnabled(true);
-		
-		
 		
 	}
 	
