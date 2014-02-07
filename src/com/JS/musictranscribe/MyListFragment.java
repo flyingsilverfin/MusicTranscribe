@@ -35,7 +35,7 @@ public class MyListFragment extends Fragment implements ListElementAdapter.OnLis
         // This makes sure that the container activity has implemented
         // the callback interface. If not, it throws an exception
         try {
-            mCommunicatorInterface = (OnSomethingCheckedInterface) activity;
+        	mCommunicatorInterface = (OnSomethingCheckedInterface) activity;
         } catch (ClassCastException e) {
             Log.e(TAG, activity.toString() + " must implement OnHeadlineSelectedListener");
             Log.e(TAG,"Bailing!");

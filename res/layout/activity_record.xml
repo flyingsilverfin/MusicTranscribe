@@ -28,9 +28,8 @@
             android:layout_width="70dp"
             android:layout_height="match_parent"
             android:layout_margin="0dp"
-			android:padding="1dp"
-            android:orientation="vertical" >
-
+            android:orientation="vertical"
+            android:padding="1dp" >
         </LinearLayout>
 
         <LinearLayout
@@ -58,6 +57,11 @@
                 android:layout_height="wrap_content"
                 android:text="@string/dGraph_every_cycle_button_text" />
 
+            <Button
+                android:id="@+id/list_files_button"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/list_all_private_files_button_text" />
             <!--
 		    <Button
 		        android:id="@+id/dDropbox_Upload_Button"
@@ -73,6 +77,7 @@
     <FrameLayout
         android:id="@+id/empty_fragment"
         android:layout_width="200dp"
-        android:layout_height="match_parent" />
+        android:layout_height="match_parent"
+        android:layout_gravity="left" />
 
 </FrameLayout>

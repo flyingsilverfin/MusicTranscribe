@@ -92,6 +92,7 @@ public class SummaryFragment extends Fragment {
 		
 		mGraphView.setScalable(false);
 		mGraphView.setScrollable(true);
+		mGraphView.getGraphViewStyle().setVerticalLabelsWidth(70);
 		
 		mGraphData = new GraphViewSeries(new GraphViewData[] {new GraphViewData(1,1)});
 		

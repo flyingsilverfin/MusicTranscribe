@@ -33,6 +33,7 @@ public class RecordActivity extends Activity implements MyListFragment.OnSomethi
 	private Button mRecordingPausePlayButton;	
 	private Button mFinishRecordingButton;
 	private Button mGraphButton;
+	private Button mListFilesButton;
 	private AudioAnalyzer mAudioAnalyzer;
 	
 	private GraphView mGraphView;
@@ -99,10 +100,26 @@ public class RecordActivity extends Activity implements MyListFragment.OnSomethi
 		});
 		
 		*/
+		
+		mListFilesButton = (Button) findViewById(R.id.list_files_button);
+		mListFilesButton.setOnClickListener(new View.OnClickListener() {
+			
+			@Override
+			public void onClick(View v) {
+				if (!mListFragment.isVisible()) {
+					Log.i(TAG, "starting list fragment");
+					FragmentManager fragmentManager = getFragmentManager();
+					FragmentTransaction fragmentTransaction = fragmentManager.beginTransaction();
+					fragmentTransaction.add(R.id.empty_fragment, mListFragment);
+					fragmentTransaction.addToBackStack(null);
+					fragmentTransaction.commit();
+				}
+			}
+		});
 
 		
 		//set up graphView
-		mGraphView = new BarGraphView(this, "H");
+		mGraphView = new BarGraphView(this, "");
 		mGraphView.setBackgroundColor(Color.WHITE);
 		mGraphView.setScrollable(true);
 		mGraphView.setScalable(false);
@@ -121,8 +138,8 @@ public class RecordActivity extends Activity implements MyListFragment.OnSomethi
 		
 		//set up List Fragment for later use
 		mListFragment = new MyListFragment();
-		//check if there's an active file, otherwise can't do anything
 		
+		//check if there's an active file, otherwise can't do anything
 		mActiveFile = Helper.getStringPref(Helper.ACTIVE_MAPDATA_FILE_KEY, getApplicationContext());
 		if (Helper.getStringPref(Helper.ACTIVE_MAPDATA_FILE_KEY, getApplicationContext()) == null) {
 			if (!mListFragment.isVisible()) {

@@ -18,10 +18,12 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
 
+import com.JS.musictranscribe.MyListFragment.OnSomethingCheckedInterface;
 
 
 
-public class DatacollectActivity extends Activity {
+
+public class DatacollectActivity extends Activity implements OnSomethingCheckedInterface{
 	
 	//tag
 	private static final String TAG = "DatacollectActivity";
@@ -395,6 +397,12 @@ public class DatacollectActivity extends Activity {
 	
 	private void status(String msg) {
 		mStatusTextView.setText(msg);
+	}
+	
+	
+	public void onSomethingChecked() {
+		Log.i(TAG,"Checking something here only updates the SharedPreference");
+	
 	}
 	
 	/**
