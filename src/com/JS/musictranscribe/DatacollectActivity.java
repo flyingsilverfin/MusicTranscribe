@@ -90,7 +90,7 @@ public class DatacollectActivity extends Activity {
 				int num = Integer.parseInt(mNumRecordingsEditText.getText().toString());
 				disableInputs();
 				Log.i(TAG,"\tGoing to record: " + num + "times");
-				mSamples = mAudioCollector.getNSamples(num);
+				getNSamples(num);
 				mAudioCollector.writeSamplesToDropbox(mSamples, num+"recordings");
 				status("Recorded " + mSamples.length + " recordings and uploaded to Dropbox if logged in");
 				enableInputs();
@@ -109,7 +109,7 @@ public class DatacollectActivity extends Activity {
 				int msecs = Integer.parseInt(mTimedRecordingEditText.getText().toString());
 				disableInputs();
 				Log.i(TAG,"\tGoing to record for: " + mTimedRecordingEditText.getText().toString() + "milliseconds");
-				mSamples = mAudioCollector.getSamplesFor(msecs*1000);
+				getSamplesFor(msecs*1000);
 				status("Recorded " + mSamples.length + " recordings in " +  mTimedRecordingEditText.getText().toString() +
 						" ms and uploaded to Dropbox if logged in");
 				mAudioCollector.writeSamplesToDropbox(mSamples, msecs+"msRecording");
@@ -139,6 +139,15 @@ public class DatacollectActivity extends Activity {
 					fragmentTransaction.add(R.id.empty_fragment, mSummaryFragment);
 					fragmentTransaction.addToBackStack(null);
 					fragmentTransaction.commit();
+				}
+				else {
+					double[] joined = Helper.joinArrays(mSamples);
+					double[] averaged = Helper.averageArrays(mSamples);
+					mSummaryFragment.setAmplitude(Helper.sumArrayInAbs(averaged)/averaged.length);
+					mSummaryFragment.setSampleLength(((double)joined.length)/Helper.SAMPLING_SPEED);
+					mSummaryFragment.setFftVals(Helper.fft(averaged));
+					mSummaryFragment.setAudioVals(joined);
+					mSummaryFragment.notifyDataChanged();
 				}
 			}
 		});
@@ -246,13 +255,13 @@ public class DatacollectActivity extends Activity {
 						Log.i(TAG, "Recording...");
 						
 						if (mNumSamplesForThisMap == -1) { //if this is the first recording for this map
-							mSamples = mAudioCollector.getSamplesFor(3000000);
+							getSamplesFor(3000000); //3 sec
 							mNumSamplesForThisMap = mSamples.length;
 							Log.i(TAG, "First time for new map, got " + mNumSamplesForThisMap + " samples");
 						}
 						else {
 							Log.i(TAG, "Getting another " + mNumSamplesForThisMap + " samples");
-							mSamples = mAudioCollector.getNSamples(mNumSamplesForThisMap);
+							getNSamples(mNumSamplesForThisMap);
 						}
 						
 						Log.i(TAG,"Averaging samples &  doing FFT");
@@ -322,6 +331,24 @@ public class DatacollectActivity extends Activity {
 		}
 	}
 
+	
+	/*
+	 * these two functions are here to channel all recordings in this class through two places
+	 * Allows us to update various things like summary fragment
+	 */
+	private void getSamplesFor(int microSec) {
+		mSamples = mAudioCollector.getSamplesFor(microSec);
+		if (mSummaryFragment.isVisible()) {
+			mRecordingSummaryButton.performClick(); //to update the summary fragment
+		}
+	}
+	
+	private void getNSamples(int n) {
+		mSamples = mAudioCollector.getNSamples(n);
+		if (mSummaryFragment.isVisible()) {
+			mRecordingSummaryButton.performClick(); //to update the summary fragment
+		}
+	}
 	
 	
 	private void disableInputs() {

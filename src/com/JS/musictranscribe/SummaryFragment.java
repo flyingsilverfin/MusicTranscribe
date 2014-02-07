@@ -78,7 +78,7 @@ public class SummaryFragment extends Fragment {
 				if (adapterView.getItemAtPosition(position).equals("fft")) {
 					updateGraph(mFftXAxis, mFftVals);
 				}
-				if (adapterView.getItemAtPosition(position).equals("audio")) {
+				else if (adapterView.getItemAtPosition(position).equals("audio")) {
 					updateGraph(Helper.getEachNthInArray(mAudioXAxis,8), Helper.getEachNthInArray(mAudioVals,8));
 				}
 			}
@@ -117,9 +117,21 @@ public class SummaryFragment extends Fragment {
 	}
 	
 	
+	/*
+	 * call this if new data has been passed into the fragment
+	 */
+	public void notifyDataChanged() {
+		if(mGraphSelectionSpinner.getSelectedItem().equals("fft")) {
+			updateGraph(mFftXAxis, mFftVals);
+		}
+		else if (mGraphSelectionSpinner.getSelectedItem().equals("audio")) {
+			updateGraph(Helper.getEachNthInArray(mAudioXAxis,8), Helper.getEachNthInArray(mAudioVals,8));
+		}
+	}
+	
 	
 	/*
-	 * must be of the same length
+	 * inputs must be of the same length
 	 */
 	public void updateGraph(double[] xVals, double[] yVals) {
 		if (yVals.length != xVals.length) {
@@ -148,9 +160,34 @@ public class SummaryFragment extends Fragment {
 		mAmplitudeTextView.setText("Average Amplitude: " + amplitude);
 	}
 	
-	
 	public void setSampleLength(double length) {
 		mSampleLengthTextView.setText("Length in ms: " + length);
+	}
+	
+	public void setFftVals(double[] fftVals) {
+		mFftVals = fftVals;
+		mFftXAxis = Helper.getFrequencyAxis(((double)2*(mFftVals.length+1)) / Helper.SAMPLING_SPEED, mFftVals.length); //length/samplingspeed = time of sample
+	}
+	
+	public void setAudioVals(double[] audioVals) {
+		mAudioVals = audioVals;
+		mAudioXAxis = Helper.range(0, 1/((double)Helper.SAMPLING_SPEED), mAudioVals.length);
+	}
+	
+	public double[] getFftVals() {
+		return mFftVals;
+	}
+	
+	public double[] getFftXAxis() {
+		return mFftXAxis;
+	}
+	
+	public double[] getAudioVals() {
+		return mAudioVals;
+	}
+	
+	public double[] getAudioXAxis() {
+		return mAudioXAxis;
 	}
 
 }
