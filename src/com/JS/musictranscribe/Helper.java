@@ -370,6 +370,14 @@ public class Helper {
 		return res;
 	}
 	
+	public static double[] getEachNthInArray(double[] arr, int step) {
+		double[] res = new double[(int)arr.length/step];
+		for (int i = 0; i < res.length; i++) {
+			res[i] = arr[i*step];
+		}
+		return res;
+	}
+	
 	public static double[] averageArrays(double[][] data) { //must be a regularly shaped matrix (all same length)
 		double[] result = new double[data[0].length];
 		for (int i = 0; i < data[0].length; i++) {

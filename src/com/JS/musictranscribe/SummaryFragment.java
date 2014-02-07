@@ -9,6 +9,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.LinearLayout;
 import android.widget.Spinner;
@@ -70,11 +71,27 @@ public class SummaryFragment extends Fragment {
 		adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
 		mGraphSelectionSpinner.setAdapter(adapter);
 
+		mGraphSelectionSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+			@Override
+			public void onItemSelected(AdapterView<?> adapterView, View view, int position, long id) {
+				Log.i(TAG,"selection in summary spinner");
+				if (adapterView.getItemAtPosition(position).equals("fft")) {
+					updateGraph(mFftXAxis, mFftVals);
+				}
+				if (adapterView.getItemAtPosition(position).equals("audio")) {
+					updateGraph(Helper.getEachNthInArray(mAudioXAxis,8), Helper.getEachNthInArray(mAudioVals,8));
+				}
+			}
+			
+			@Override
+			public void onNothingSelected(AdapterView<?> adapterView) {
+			}
+		});
 		
-		mGraphView = new LineGraphView(getActivity(), "");
+		mGraphView = new LineGraphView(getActivity(), "");		
+		
 		mGraphView.setScalable(false);
 		mGraphView.setScrollable(true);
-		mGraphView.setViewPort(0, 200);
 		
 		mGraphData = new GraphViewSeries(new GraphViewData[] {new GraphViewData(1,1)});
 		
@@ -87,7 +104,8 @@ public class SummaryFragment extends Fragment {
 		mFftVals = getArguments().getDoubleArray("fftVals");
 		mAudioVals = getArguments().getDoubleArray("audioVals");
 		mFftXAxis = Helper.getFrequencyAxis(((double)2*(mFftVals.length+1)) / Helper.SAMPLING_SPEED, mFftVals.length); //length/samplingspeed = time of sample
-		mAudioXAxis = Helper.range(0, 1/Helper.SAMPLING_SPEED, mAudioVals.length);
+		mAudioXAxis = Helper.range(0, 1/((double)Helper.SAMPLING_SPEED), mAudioVals.length);
+
 		mAmplitude = getArguments().getDouble("amplitude");
 		mLength = getArguments().getDouble("timeLength");
 		
@@ -97,6 +115,7 @@ public class SummaryFragment extends Fragment {
 		
 		return view;
 	}
+	
 	
 	
 	/*
@@ -118,6 +137,7 @@ public class SummaryFragment extends Fragment {
 				
 		mGraphView.setManualYAxisBounds(Math.max(Helper.max(yVals), Math.abs(Helper.min(yVals))),
 				-1* Math.max(Helper.max(yVals), Math.abs(Helper.min(yVals))));
+		mGraphView.setViewPort(0, xVals[xVals.length-1]/20);
 				
 	}
 	
