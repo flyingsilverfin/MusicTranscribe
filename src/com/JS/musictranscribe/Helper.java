@@ -429,6 +429,14 @@ public class Helper {
 		return arr;
 	}
 	
+	public static double[] toDoublePrimitiveArray(Double[] arr) {
+		double[] res = new double[arr.length];
+		for (int i = 0; i < arr.length; i++) {
+			res[i] = arr[i];
+		}
+		return res;
+	}
+	
 	//------------------ Audio Functions ------------------
 
 	public static double[] fft(double[] data) {

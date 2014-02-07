@@ -1,11 +1,17 @@
 package com.JS.musictranscribe;
 
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
+import java.util.Map.Entry;
 
 import android.annotation.TargetApi;
 import android.app.Activity;
 import android.app.FragmentManager;
 import android.app.FragmentTransaction;
+import android.content.Intent;
 import android.media.MediaRecorder.AudioSource;
 import android.os.Build;
 import android.os.Bundle;
@@ -17,6 +23,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.JS.musictranscribe.MyListFragment.OnSomethingCheckedInterface;
 
@@ -59,6 +66,7 @@ public class DatacollectActivity extends Activity implements OnSomethingCheckedI
 	private Button mSaveNewMapButton;
 	
 	private Button mListAllFilesButton;
+	private Button mInspectActiveFile;
 	
 	private MyListFragment mListFragment;
 	private SummaryFragment mSummaryFragment;
@@ -311,6 +319,35 @@ public class DatacollectActivity extends Activity implements OnSomethingCheckedI
 					
 				}
 				
+			}
+		});
+
+		mInspectActiveFile = (Button) findViewById(R.id.inspect_active_file_button);
+		mInspectActiveFile.setOnClickListener(new View.OnClickListener() {
+			
+			@Override
+			public void onClick(View v) {
+				if (Helper.getStringPref(Helper.ACTIVE_MAPDATA_FILE_KEY, getApplicationContext()) != null) {
+					HashMap<Integer, Double[]> noteMap = Helper.getNoteSpectraFromFile(getApplicationContext(),Helper.getStringPref(Helper.ACTIVE_MAPDATA_FILE_KEY, getApplicationContext()));
+					
+					int fftLength = ((Double[])noteMap.values().toArray()[0]).length; //cast the Object array to Double[] to access length option
+					double[] xAxis = Helper.getFrequencyAxis(((double)2)*(fftLength+1)/Helper.SAMPLING_SPEED, fftLength);
+					
+					Intent intent = new Intent(DatacollectActivity.this,GraphActivity.class);
+					
+					String baseKey;
+				
+					for (Entry<Integer, Double[]> entry : noteMap.entrySet()) {
+						baseKey = "note" + entry.getKey() + "FFT";
+						intent.putExtra(baseKey, Helper.toDoublePrimitiveArray(entry.getValue()));
+						intent.putExtra("xAxis_" + baseKey , xAxis);
+					}
+					
+					startActivity(intent);
+				}
+				else {
+					Toast.makeText(getApplicationContext(), "Must have an active file!", Toast.LENGTH_SHORT).show();
+				}
 			}
 		});
 		

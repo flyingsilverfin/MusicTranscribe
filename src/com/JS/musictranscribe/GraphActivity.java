@@ -1,6 +1,7 @@
 package com.JS.musictranscribe;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
@@ -10,6 +11,7 @@ import android.graphics.Color;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.LinearLayout;
@@ -37,7 +39,6 @@ public class GraphActivity extends Activity {
 
 	private List<String> yAxisKeys;
 	private Spinner graphChoicesSpinner;
-	private Button mSubmitGraphChoiceButton;
 	private Button mPercentActivityButton;
 	private Button mDisableContGraphing;
 	private GraphView graphView;
@@ -60,6 +61,7 @@ public class GraphActivity extends Activity {
 		for (int i = 0; i < yAxisKeys.size(); i++) {
 			Log.i(TAG,"choice: " + yAxisKeys.get(i));
 		}
+		Collections.sort(yAxisKeys);
 		
 		ArrayAdapter<String> adapter = new ArrayAdapter<String> (this, 
 				android.R.layout.simple_spinner_item, yAxisKeys);
@@ -68,16 +70,18 @@ public class GraphActivity extends Activity {
 		
 		Log.i(TAG,"Spinner set up");
 		
-		//set up submit button
-		mSubmitGraphChoiceButton = (Button) findViewById(R.id.submit_graph_choice_button);
-		mSubmitGraphChoiceButton.setOnClickListener(new View.OnClickListener() {
+		graphChoicesSpinner.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
 			@Override
-			public void onClick(View v) {
-				updateGraph(String.valueOf(graphChoicesSpinner.getSelectedItem()));
+			public void onItemSelected(AdapterView<?> adapterView, View view, int pos, long id) {
+				updateGraph(String.valueOf(adapterView.getItemAtPosition(pos)));
+			}
+			
+			@Override
+			public void onNothingSelected(AdapterView<?> adapterView) {
+				
 			}
 		});
 		
-		Log.i(TAG,"Wired Submit Button");
 		
 		
 		dGraphEveryCycle = getIntent().getBooleanExtra("dGraphEveryCycle", false);
@@ -143,7 +147,7 @@ public class GraphActivity extends Activity {
 		Log.i(TAG,"Adding series");
 		graphView.addSeries(new GraphViewSeries(graphviewData));
 		
-		if (key.equals("FFT")) {
+		if (key.endsWith("FFT")) {
 			graphView.setViewPort(20, 2000);
 		}
 		else {

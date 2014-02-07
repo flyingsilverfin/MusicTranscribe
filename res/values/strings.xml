@@ -20,7 +20,7 @@
     <!-- Data collect Activity -->
     <string name="title_activity_datacollect">Datacollect Activity</string>
     <string name="goto_datacollect_activity_button">Data Collection</string>
-    <string name="default_num_recordings">15</string>
+    <string name="default_num_recordings">10</string>
     <string name="start_n_recordings">Get this many recordings</string>
     <string name="default_recording_time">3000</string>
     <string name="recording_summary_button_text">Summary</string>
@@ -31,6 +31,8 @@
     <string name="map_file_name_edittext_hint">Map Filename</string>
     <string name="load_note_map_button_text">Load this map</string>
     <string name="list_all_private_files_button_text">ls</string>
+    <string name="inspect_active_file_button_text">Inspect Active File</string>
+    
     
     <string name="delete_all_private_files_button_text">Delete all files</string>
     
