@@ -338,16 +338,24 @@ public class DatacollectActivity extends Activity {
 	 */
 	private void getSamplesFor(int microSec) {
 		mSamples = mAudioCollector.getSamplesFor(microSec);
-		if (mSummaryFragment.isVisible()) {
-			mRecordingSummaryButton.performClick(); //to update the summary fragment
-		}
+		runOnUiThread(new Runnable() {
+			public void run() {
+				if (mSummaryFragment.isVisible()) {
+					mRecordingSummaryButton.performClick(); //to update the summary fragment
+				}
+			}
+		});
 	}
 	
 	private void getNSamples(int n) {
 		mSamples = mAudioCollector.getNSamples(n);
-		if (mSummaryFragment.isVisible()) {
-			mRecordingSummaryButton.performClick(); //to update the summary fragment
-		}
+		runOnUiThread(new Runnable() {
+			public void run() {
+				if (mSummaryFragment.isVisible()) {
+					mRecordingSummaryButton.performClick(); //to update the summary fragment
+				}
+			}
+		});
 	}
 	
 	
